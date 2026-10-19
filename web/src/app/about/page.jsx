@@ -24,19 +24,19 @@ export default function AboutPage() {
             Home
           </Link>
           <Link
-            href="/guest/internships"
+            href="/internships"
             className="text-white/90 hover:text-white px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors"
           >
             Internships
           </Link>
           <Link
-            href="/guest/people"
+            href="/people"
             className="text-white/90 hover:text-white px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors"
           >
             People
           </Link>
           <Link
-            href="/guest/launchpad"
+            href="/launchpad"
             className="text-white/90 hover:text-white px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium hover:bg-white/10 transition-colors"
           >
             Launchpad

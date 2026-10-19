@@ -90,13 +90,13 @@ export default function DashboardHeader({
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
   };
 
-  const role = pathname.startsWith("/guest")
-    ? "guest"
-    : pathname.startsWith("/company")
+  const role = pathname.startsWith("/company")
     ? "company"
     : pathname.startsWith("/admin")
     ? "admin"
-    : "student";
+    : pathname.startsWith("/student")
+    ? "student"
+    : "guest";
 
   const displayTitle =
     title ||

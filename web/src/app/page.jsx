@@ -151,7 +151,7 @@ export default function LandingPage() {
               More
             </Link>
             <Link
-              href="/guest/internships"
+              href="/internships"
               id="landing-get-started-btn"
               className="cursor-pointer bg-[#4B9C93] hover:bg-[#3d867e] active:scale-95 text-white px-6 sm:px-9 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-semibold transition-all"
             >

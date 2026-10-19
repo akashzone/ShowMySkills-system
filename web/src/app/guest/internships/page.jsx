@@ -1,11 +1,8 @@
-"use client";
-
-import InternshipsPage from "@/app/internships/page";
+import { redirect } from "next/navigation";
 
 /**
- * Guest Internships Route — Public exploration of verified tech internships.
- * Sidebar and Header automatically adapt to Guest mode.
+ * Legacy guest route. Automatically redirects to public /internships.
  */
 export default function GuestInternshipsRoute() {
-  return <InternshipsPage />;
+  redirect("/internships");
 }
