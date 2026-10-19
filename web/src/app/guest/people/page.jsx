@@ -1,11 +1,8 @@
-"use client";
-
-import PeoplePage from "@/app/student/people/page";
+import { redirect } from "next/navigation";
 
 /**
- * Guest People Route — Public talent & peer discovery across campus creators.
- * Sidebar and Header automatically adapt to Guest mode.
+ * Legacy guest route. Automatically redirects to public /people.
  */
 export default function GuestPeopleRoute() {
-  return <PeoplePage />;
+  redirect("/people");
 }

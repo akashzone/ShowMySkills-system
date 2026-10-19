@@ -29,13 +29,13 @@ export default function DashboardSidebar() {
   const { isOpen, closeSidebar } = useSidebar();
 
   // Determine current active role from route path
-  const role = pathname.startsWith("/guest")
-    ? "guest"
-    : pathname.startsWith("/company")
+  const role = pathname.startsWith("/company")
     ? "company"
     : pathname.startsWith("/admin")
     ? "admin"
-    : "student";
+    : pathname.startsWith("/student")
+    ? "student"
+    : "guest";
 
   // Top navigation items per role
   let topNavItems = [];
@@ -43,9 +43,9 @@ export default function DashboardSidebar() {
 
   if (role === "guest") {
     topNavItems = [
-      { label: "Internships", href: "/guest/internships", icon: Briefcase },
-      { label: "People", href: "/guest/people", icon: Users },
-      { label: "Launchpad", href: "/guest/launchpad", icon: Rocket },
+      { label: "Internships", href: "/internships", icon: Briefcase },
+      { label: "People", href: "/people", icon: Users },
+      { label: "Launchpad", href: "/launchpad", icon: Rocket },
     ];
     bottomNavItems = [
       { label: "About Us", href: "/about", icon: Info },
@@ -93,28 +93,27 @@ export default function DashboardSidebar() {
   }
 
   const isActive = (href) => {
+    if (href === "/internships") {
+      return pathname === "/internships" || pathname === "/guest/internships";
+    }
+    if (href === "/people") {
+      return pathname === "/people" || pathname === "/guest/people";
+    }
+    if (href === "/launchpad") {
+      return pathname === "/launchpad" || pathname === "/guest/launchpad";
+    }
     if (href === "/student/internships") {
       return (
         pathname === "/student/internships" ||
-        pathname === "/internships" ||
-        pathname?.startsWith("/internships") ||
         pathname === "/student/dashboard" ||
         pathname === "/dashboard"
       );
     }
     if (href === "/student/people") {
-      return (
-        pathname === "/student/people" ||
-        pathname === "/people" ||
-        pathname?.startsWith("/people")
-      );
+      return pathname === "/student/people";
     }
     if (href === "/student/launchpad") {
-      return (
-        pathname === "/student/launchpad" ||
-        pathname === "/launchpad" ||
-        pathname?.startsWith("/launchpad")
-      );
+      return pathname === "/student/launchpad";
     }
     return pathname === href || pathname?.startsWith(href);
   };
@@ -195,9 +194,7 @@ export default function DashboardSidebar() {
           {/* ──── Role-Specific Middle Action Card ──── */}
           {role === "guest" ? (
             <div className="my-2 bg-white rounded-xl p-3 shadow-md shadow-black/5 text-center">
-              <div className="h-6 w-6 rounded-full bg-[#4B9C93]/10 flex items-center justify-center mx-auto mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-[#4B9C93]" />
-              </div>
+      
               <h4 className="text-xs font-bold text-gray-900 mb-0.5">
                 Join ShowMySkills
               </h4>
