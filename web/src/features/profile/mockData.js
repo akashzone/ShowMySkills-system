@@ -7,6 +7,7 @@
 export const studentProfileData = {
   /* ──── Identity ──── */
   name: "Rahul Kumar",
+  tag: "Maintainer",
   verified: true,
   title: "UI/UX Designer",
   college: "ABC Engineering College",
@@ -23,9 +24,9 @@ export const studentProfileData = {
   reputationMax: 100,
   topPercentile: "Top 10% in UI/UX",
   metrics: [
-    { label: "Project Quality", value: 95, color: "#14b8a6" },
-    { label: "Endorsements", value: 45, color: "#14b8a6" },
-    { label: "Consistency", value: 70, color: "#14b8a6" },
+    { label: "Project Quality", value: 95, color: "#4B9C93" },
+    { label: "Endorsements", value: 45, color: "#4B9C93" },
+    { label: "Consistency", value: 70, color: "#4B9C93" },
   ],
 
   /* ──── About ──── */

@@ -1,0 +1,789 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import {
+  Search,
+  SlidersHorizontal,
+  Bookmark,
+  MapPin,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  X,
+  ExternalLink,
+  GraduationCap,
+  Sparkles,
+  CheckCircle2,
+  Share2,
+  MessageSquare,
+} from "lucide-react";
+
+import DashboardSidebar from "@/components/DashboardSidebar";
+import DashboardHeader from "@/components/DashboardHeader";
+import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
+
+// Candidate mock data directly from Figma frame "Student discovery"
+const initialCandidates = [
+  {
+    id: 1,
+    name: "Joel A. Jacob",
+    tag: "Maintainer",
+    role: "Frontend Developer",
+    college: "College of Engineering Trivandrum",
+    department: "Computer Science (AI & Machine Learning)",
+    location: "Punalur, Kollam, Kerala, India",
+    score: 23,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180",
+    skills: ["App Development", "Communication"],
+    allSkills: ["App Development", "Communication", "React", "Next.js", "Tailwind CSS", "TypeScript"],
+    bio: "Passionate frontend engineer focused on building intuitive, high-performance web and mobile applications with modern JavaScript frameworks.",
+    projects: [
+      { name: "CampusHub Mobile", desc: "Flutter & Firebase app for campus events and peer networking." },
+      { name: "ShowMySkills Web Client", desc: "High-performance student portfolio showcase system." },
+    ],
+  },
+  {
+    id: 2,
+    name: "S SIDHARTH",
+    tag: "Admin",
+    role: "UI/UX Designer",
+    college: "College of Engineering Trivandrum",
+    department: "Industrial Engineering",
+    location: "Trivandrum, Kerala",
+    score: 63,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ab8e554398afb86403d2a7da0c420fe67c60f085?width=180",
+    skills: ["Machine Learning / AI", "Operating Systems"],
+    allSkills: ["Machine Learning / AI", "Operating Systems", "UI/UX Design", "Figma", "Design Systems"],
+    bio: "Product designer and engineer who blends human-centered design with computational engineering to build seamless digital experiences.",
+    projects: [
+      { name: "FinFlow Analytics Dashboard", desc: "Design system and interface for enterprise financial metrics." },
+      { name: "EcoTrack Mobility", desc: "UX research and high-fidelity prototype for sustainable transit." },
+    ],
+  },
+  {
+    id: 3,
+    name: "Reshma Udhayan",
+    tag: "Promoter",
+    role: "FullStack Developer",
+    college: "College of Engineering Trivandrum",
+    department: "Industrial engineering",
+    location: "Trivandrum",
+    score: 72,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/c3059191c12486377929540d913e78b03ba9bddc?width=180",
+    skills: ["SolidWorks", "CAD / CAM / CAE"],
+    allSkills: ["SolidWorks", "CAD / CAM / CAE", "Node.js", "React", "PostgreSQL", "FullStack Web"],
+    bio: "Full-stack developer with a strong mechanical & systems design background, engineering scalable web platforms and 3D modeling tools.",
+    projects: [
+      { name: "AutoCAD Cloud Sync", desc: "Web platform connecting CAD rendering pipelines with real-time feedback." },
+      { name: "TalentLink Portal", desc: "Full-stack recruiting platform with automated resume parsing." },
+    ],
+  },
+  {
+    id: 4,
+    name: "Vaishnav RL",
+    tag: "Ambassador",
+    role: "Graphic Designer",
+    college: "College of Engineering Trivandrum",
+    department: "Industrial Engineering",
+    location: "Trivandrum",
+    score: 81,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/46fce00ed55aca498d8347d953abdc65e3ba2655?width=180",
+    skills: ["UI/ UX", "Financial analysis"],
+    allSkills: ["UI/ UX", "Financial analysis", "Brand Identity", "Motion Graphics", "Figma"],
+    bio: "Visual and brand designer translating quantitative business insights and financial narratives into compelling graphics.",
+    projects: [
+      { name: "Venture Metrics Annual Report", desc: "Visual storytelling and data visualization branding package." },
+      { name: "Aura Brand Identity", desc: "Complete visual identity and design tokens for tech startups." },
+    ],
+  },
+  {
+    id: 5,
+    name: "Abhay SA",
+    tag: "Contributor",
+    role: "FullStack Developer",
+    college: "College of Engineering Trivandrum",
+    department: "Industrial engineering",
+    location: "Trivandrum",
+    score: 72,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/f7559f012fcf86117c87ef912259ea3d4b2467c5?width=180",
+    skills: ["SolidWorks", "CAD / CAM / CAE"],
+    allSkills: ["SolidWorks", "CAD / CAM / CAE", "Next.js", "Express", "Docker", "REST APIs"],
+    bio: "Full-stack engineer passionate about industrial automation, backend architectures, and developer tooling.",
+    projects: [
+      { name: "Smart Inventory Orchestrator", desc: "Real-time warehouse tracking platform with IoT integration." },
+      { name: "RapidCAD Web Viewer", desc: "Browser-based lightweight 3D CAD inspector." },
+    ],
+  },
+  {
+    id: 6,
+    name: "Rishi Chandran",
+    tag: "Ambassador",
+    role: "Graphic Designer",
+    college: "College of Engineering Trivandrum",
+    department: "Industrial Engineering",
+    location: "Trivandrum",
+    score: 81,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ffe52c79545b2a85e56e27f28c8198d4551e8795?width=180",
+    skills: ["UI/ UX", "Financial analysis"],
+    allSkills: ["UI/ UX", "Financial analysis", "Typography", "Illustrator", "Product Strategy"],
+    bio: "Multidisciplinary visual designer focused on marketing design, clean interface aesthetics, and conversion-focused landing pages.",
+    projects: [
+      { name: "Apex Design System", desc: "Modular design kit for fintech and data-heavy applications." },
+      { name: "Kerala Startup Mission Deck", desc: "Pitch deck visual storytelling winning state-level innovation grant." },
+    ],
+  },
+  {
+    id: 7,
+    name: "asher john",
+    tag: "Promoter",
+    role: "Frontend Developer",
+    college: "College of Engineering Trivandrum",
+    department: "Computer Science (AI & Machine Learning)",
+    location: "Punalur, Kollam, Kerala, India",
+    score: 23,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/c108ffdec7504150607ccddcecf48749b1c50f54?width=180",
+    skills: ["App Development", "Communication"],
+    allSkills: ["App Development", "Communication", "React Native", "Vue.js", "GraphQL"],
+    bio: "Frontend engineer enthusiastic about AI-augmented applications, accessibility, and high framerate mobile interfaces.",
+    projects: [
+      { name: "VoiceLearn AI", desc: "Interactive language tutor with low-latency speech recognition." },
+      { name: "PulseUI", desc: "Component library designed for rapid hackathon prototyping." },
+    ],
+  },
+  {
+    id: 8,
+    name: "Devikripa S",
+    tag: "Contributor",
+    role: "UI/UX Designer",
+    college: "College of Engineering Trivandrum",
+    department: "Industrial Engineering",
+    location: "Trivandrum, Kerala",
+    score: 63,
+    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/a5bb5f84222369dfc64ce1f696c04fdc36d5fa89?width=180",
+    skills: ["Machine Learning / AI", "Operating Systems"],
+    allSkills: ["Machine Learning / AI", "Operating Systems", "User Research", "Wireframing", "Figma"],
+    bio: "User experience designer who combines user research with behavioral psychology to design high-engagement digital products.",
+    projects: [
+      { name: "SkillVerify Student Dashboard", desc: "End-to-end UX architecture for peer-verified technical competencies." },
+      { name: "HealthTrack Patient Flow", desc: "Mobile telemedicine interface streamlined for elderly usability." },
+    ],
+  },
+];
+
+export default function StudentPeoplePage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [minScore, setMinScore] = useState(0);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [starredIds, setStarredIds] = useState(new Set());
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 3000);
+  };
+
+  const toggleStar = (id, name) => {
+    setStarredIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+        showToast(`Removed star from ${name}`);
+      } else {
+        next.add(id);
+        showToast(`Gave a star to ${name}! ⭐`);
+      }
+      return next;
+    });
+  };
+
+  // Filter candidates based on search & filters
+  const filteredCandidates = useMemo(() => {
+    return initialCandidates.filter((c) => {
+      // Role filter
+      if (selectedRole !== "all" && c.role.toLowerCase() !== selectedRole.toLowerCase()) {
+        return false;
+      }
+      // Score filter
+      if (c.score < minScore) {
+        return false;
+      }
+      // Search query
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        c.name.toLowerCase().includes(q) ||
+        c.role.toLowerCase().includes(q) ||
+        c.college.toLowerCase().includes(q) ||
+        c.department.toLowerCase().includes(q) ||
+        c.location.toLowerCase().includes(q) ||
+        c.tag?.toLowerCase().includes(q) ||
+        c.allSkills.some((s) => s.toLowerCase().includes(q)) ||
+        c.score.toString().includes(q)
+      );
+    });
+  }, [searchQuery, selectedRole, minScore]);
+
+  // Unique roles for filter dropdown
+  const uniqueRoles = useMemo(() => {
+    const roles = new Set(initialCandidates.map((c) => c.role));
+    return Array.from(roles);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#F7F9F9] flex">
+      {/* ──── Sidebar ──── */}
+      <DashboardSidebar />
+
+      {/* ──── Main Content Area ──── */}
+      <div className="flex-1 md:ml-[220px] ml-0 flex flex-col min-h-screen relative pb-12">
+        {/* Top Header */}
+        <DashboardHeader
+          title="Welcome back, CBIT"
+          subtitle="Here's how your profile is performing this week"
+        />
+
+        {/* Toast notification */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#0F172A] text-white text-xs font-medium px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-bottom-2">
+            <CheckCircle2 className="w-4 h-4 text-[#4B9C93]" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        <main className="flex-1 px-4 sm:px-8 py-6 max-w-[1440px] w-full mx-auto">
+          {/* ──── Search Bar & Filter Button ──── */}
+          <div className="flex items-center gap-3 sm:gap-4 mb-8">
+            {/* Search Input Container */}
+            <div className="flex-1 relative flex items-center bg-white border-2 border-[#E5E6E5] rounded-full h-14 sm:h-16 px-5 sm:px-6 shadow-xs focus-within:border-[#4B9C93] focus-within:ring-2 focus-within:ring-[#4B9C93]/15 transition-all">
+              <Search className="w-5 h-5 text-[#292D32] shrink-0" strokeWidth={2} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search candidates by skill, college, score..."
+                className="w-full bg-transparent pl-3 sm:pl-4 pr-3 text-sm sm:text-[15px] font-medium text-[#101828] placeholder:text-[#67727A]/80 focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Circular Filter Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowFilterModal(!showFilterModal)}
+                aria-label="Filter candidates"
+                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#E5E6E5] bg-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs hover:border-[#4B9C93] hover:bg-[#F8FAFC] transition-all ${
+                  showFilterModal || selectedRole !== "all" || minScore > 0 ? "border-[#4B9C93] ring-2 ring-[#4B9C93]/20" : ""
+                }`}
+              >
+                <SlidersHorizontal className="w-6 h-6 text-[#292D32]" strokeWidth={2} />
+              </button>
+
+              {/* Filter Dropdown Popover */}
+              {showFilterModal && (
+                <div className="absolute right-0 top-18 w-72 sm:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 z-40 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                    <h4 className="text-sm font-bold text-gray-900">Filter Candidates</h4>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterModal(false)}
+                      className="text-gray-400 hover:text-gray-600 p-1"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="py-4 space-y-4">
+                    {/* Role Filter */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                        Domain / Role
+                      </label>
+                      <select
+                        value={selectedRole}
+                        onChange={(e) => setSelectedRole(e.target.value)}
+                        className="w-full text-xs bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:border-[#4B9C93]"
+                      >
+                        <option value="all">All Roles</option>
+                        {uniqueRoles.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Minimum Score */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-1.5">
+                        <span>Min Verification Score</span>
+                        <span className="text-[#4B9C93] font-bold">{minScore} pts</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="85"
+                        step="5"
+                        value={minScore}
+                        onChange={(e) => setMinScore(Number(e.target.value))}
+                        className="w-full accent-[#4B9C93] cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedRole("all");
+                        setMinScore(0);
+                      }}
+                      className="text-xs font-semibold text-gray-500 hover:text-gray-800 px-3 py-1.5"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterModal(false)}
+                      className="text-xs font-semibold bg-[#4B9C93] text-white px-4 py-2 rounded-xl hover:bg-[#3d837b] transition-colors"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Active filter pills */}
+          {(selectedRole !== "all" || minScore > 0 || searchQuery) && (
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <span className="text-xs text-gray-500 font-medium">Active filters:</span>
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-full text-gray-700">
+                  Search: "{searchQuery}"
+                  <button onClick={() => setSearchQuery("")} className="hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedRole !== "all" && (
+                <span className="inline-flex items-center gap-1 text-xs bg-[#CCFBF1] text-[#0D9488] font-medium px-2.5 py-1 rounded-full">
+                  Skill Role: {selectedRole}
+                  <button onClick={() => setSelectedRole("all")} className="hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {minScore > 0 && (
+                <span className="inline-flex items-center gap-1 text-xs bg-[#CCFBF1] text-[#0D9488] font-medium px-2.5 py-1 rounded-full">
+                  Score ≥ {minScore}
+                  <button onClick={() => setMinScore(0)} className="hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedRole("all");
+                  setSelectedTag("all");
+                  setMinScore(0);
+                }}
+                className="text-xs text-[#4B9C93] hover:underline font-semibold ml-2 cursor-pointer"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {/* ──── Talent Grid ──── */}
+          {filteredCandidates.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center my-8 max-w-xl mx-auto shadow-xs">
+              <div className="w-16 h-16 rounded-full bg-[#E6F7F3] text-[#4B9C93] flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">No candidates found</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-6">
+                We couldn't find any student matches for your current filter criteria.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedRole("all");
+                  setMinScore(0);
+                }}
+                className="px-5 py-2.5 bg-[#4B9C93] text-white text-xs font-semibold rounded-xl hover:bg-[#3d837b] transition-colors"
+              >
+                Reset Search Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6">
+              {filteredCandidates.map((candidate) => {
+                const isStarred = starredIds.has(candidate.id);
+
+                return (
+                  <div
+                    key={candidate.id}
+                    className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_4px_12px_0_rgba(15,23,42,0.02)] hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between"
+                  >
+                    {/* Top Row: Avatar + Info */}
+                    <div className="flex items-start gap-4 sm:gap-5">
+                      {/* Avatar Group & Score Badge */}
+                      <div className="flex flex-col items-center gap-2 shrink-0">
+                        <img
+                          src={candidate.avatar}
+                          alt={candidate.name}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              candidate.name
+                            )}&background=4B9C93&color=fff&size=180`;
+                          }}
+                          className="w-[84px] h-[84px] sm:w-[90px] sm:h-[90px] rounded-lg object-cover bg-slate-100 border border-slate-100"
+                        />
+                        <div className="h-5 px-2 py-0.5 rounded-md bg-[#CCFBF1] flex items-center justify-center gap-1">
+                          <Star className="w-3.5 h-3.5 fill-[#5CA59D] text-[#5CA59D]" />
+                          <span className="text-[10px] font-bold text-[#0D9488] leading-none">
+                            {candidate.score + (isStarred ? 1 : 0)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Info Block */}
+                      <div className="flex-1 min-w-0">
+                        {/* Name & Give Star Button */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            <h3 className="text-[17px] sm:text-[18px] font-semibold text-[#0F172A] truncate">
+                              {candidate.name}
+                            </h3>
+                            {candidate.tag && (
+                              <StudentRoleTag tag={candidate.tag} size="xs" />
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => toggleStar(candidate.id, candidate.name)}
+                            aria-label={isStarred ? "Remove star" : "Give star to candidate"}
+                            title={isStarred ? "Starred" : "Give star"}
+                            className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                              isStarred
+                                ? "border-amber-400 bg-amber-400 text-white shadow-xs"
+                                : "border-[#00BBA7] bg-[#F8FAFC] text-[#64748B] hover:text-amber-500 hover:border-amber-400 hover:bg-amber-50/50"
+                            }`}
+                          >
+                            <Star
+                              className={`w-3.5 h-3.5 ${
+                                isStarred ? "fill-white text-white" : "stroke-[2]"
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {/* Role / Title */}
+                        <p className="text-xs font-normal text-[#202121] mt-0.5">
+                          {candidate.role}
+                        </p>
+
+                        {/* Details Meta */}
+                        <div className="mt-1.5 space-y-0.5">
+                          <p className="text-[13px] font-medium text-[#475569] truncate">
+                            {candidate.college}
+                          </p>
+                          <p className="text-xs text-[#64748B] truncate">
+                            {candidate.department}
+                          </p>
+                          <div className="flex items-center gap-1.5 text-xs text-[#64748B] pt-0.5 truncate">
+                            <MapPin className="w-3 h-3 shrink-0 text-[#64748B]" strokeWidth={2} />
+                            <span className="truncate">{candidate.location}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Skills + Chat & View Portfolio */}
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                      {/* Skills Pill Tags */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {candidate.skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-2.5 py-1 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] text-xs font-medium text-[#475569]"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCandidate(candidate)}
+                          className="px-2.5 py-1 rounded-full bg-[#F8FAFC] text-xs font-medium text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100 transition-colors cursor-pointer"
+                        >
+                          + More
+                        </button>
+                      </div>
+
+                      {/* Chat & View Portfolio Buttons */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/student/chats?user=${candidate.id}&name=${encodeURIComponent(candidate.name)}`}
+                          className="px-3.5 py-1.5 rounded-lg bg-[#4B9C93] hover:bg-[#3d867e] text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Chat</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCandidate(candidate)}
+                          className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-[#C5F1EC] hover:bg-[#b0eae3] text-xs font-semibold text-[#475569] hover:text-[#0F172A] flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+                        >
+                          <span>Portfolio</span>
+                          <ArrowRight className="w-3 h-3 text-[#475569]" strokeWidth={2} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ──── Bottom Pagination Frame 155 ──── */}
+          <div className="flex items-center justify-center gap-9 mt-12 py-4">
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className={`p-2 rounded-lg transition-colors ${
+                currentPage <= 1 ? "opacity-20 cursor-not-allowed" : "hover:bg-slate-200 cursor-pointer"
+              }`}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-8 h-8 text-black" strokeWidth={2.5} />
+            </button>
+
+            <span className="text-lg sm:text-xl font-normal text-black/80 select-none">
+              Page {currentPage}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => {
+                showToast("Page 2 candidates loaded");
+                setCurrentPage((p) => p + 1);
+              }}
+              className="p-2 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-8 h-8 text-black" strokeWidth={2.5} />
+            </button>
+          </div>
+        </main>
+      </div>
+
+      {/* ──── Candidate Portfolio Modal ──── */}
+      {selectedCandidate && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 p-6 sm:p-8 animate-in zoom-in-95">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 pb-5 border-b border-gray-100">
+              <div className="flex items-center gap-4">
+                <img
+                  src={selectedCandidate.avatar}
+                  alt={selectedCandidate.name}
+                  className="w-16 h-16 rounded-xl object-cover border border-slate-100"
+                />
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {selectedCandidate.name}
+                    </h3>
+                    {selectedCandidate.tag && (
+                      <StudentRoleTag tag={selectedCandidate.tag} size="sm" />
+                    )}
+                    <div className="h-5 px-2 rounded-md bg-[#CCFBF1] flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-[#5CA59D] text-[#5CA59D]" />
+                      <span className="text-[10px] font-bold text-[#0D9488]">
+                        {selectedCandidate.score + (starredIds.has(selectedCandidate.id) ? 1 : 0)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                    <p className="text-xs font-semibold text-[#4B9C93]">
+                      {selectedCandidate.role}
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                    <MapPin className="w-3 h-3 text-gray-400" />
+                    <span>{selectedCandidate.location}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedCandidate(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="py-6 space-y-6">
+              {/* System Platform Role */}
+              {selectedCandidate.tag && (
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <StudentRoleTag tag={selectedCandidate.tag} size="md" />
+                    <div>
+                      <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                        <span>Platform Role:</span>
+                        <span className="text-[#0D9488] font-extrabold">{selectedCandidate.tag}</span>
+                      </div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">
+                        {STUDENT_ROLE_TAGS[selectedCandidate.tag]?.desc || "Assigned system role"}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full shrink-0 shadow-2xs">
+                    Admin Assigned
+                  </span>
+                </div>
+              )}
+
+              {/* About */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  About
+                </h4>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {selectedCandidate.bio}
+                </p>
+              </div>
+
+              {/* Education */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Education & Department
+                </h4>
+                <div className="bg-[#F8FAFC] border border-gray-200 rounded-xl p-3.5 flex items-start gap-3">
+                  <GraduationCap className="w-5 h-5 text-[#4B9C93] shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="text-sm font-semibold text-gray-900">
+                      {selectedCandidate.college}
+                    </h5>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {selectedCandidate.department}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Verified Skills */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Verified Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCandidate.allSkills.map((s) => (
+                    <span
+                      key={s}
+                      className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 rounded-full text-xs font-medium text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3 h-3 text-[#4B9C93]" />
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Featured Projects */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Featured Projects
+                </h4>
+                <div className="space-y-2.5">
+                  {selectedCandidate.projects.map((proj) => (
+                    <div
+                      key={proj.name}
+                      className="border border-gray-200 rounded-xl p-3.5 hover:border-[#4B9C93]/40 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-sm font-bold text-gray-900">{proj.name}</h5>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">{proj.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  toggleStar(selectedCandidate.id, selectedCandidate.name);
+                }}
+                className={`px-4 py-2 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  starredIds.has(selectedCandidate.id)
+                    ? "border-amber-400 bg-amber-50 text-amber-700"
+                    : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <Star
+                  className={`w-3.5 h-3.5 ${
+                    starredIds.has(selectedCandidate.id)
+                      ? "fill-amber-500 text-amber-500"
+                      : ""
+                  }`}
+                />
+                <span>
+                  {starredIds.has(selectedCandidate.id) ? "Starred" : "Give Star"}
+                </span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    showToast(`Candidate profile link copied to clipboard`);
+                  }}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share</span>
+                </button>
+                <Link
+                  href={`/student/chats?user=${selectedCandidate.id}&name=${encodeURIComponent(selectedCandidate.name)}`}
+                  className="px-5 py-2 bg-[#4B9C93] hover:bg-[#3d837b] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Chat</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

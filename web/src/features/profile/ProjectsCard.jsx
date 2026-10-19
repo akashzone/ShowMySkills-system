@@ -28,7 +28,7 @@ export default function ProjectsCard({ projects }) {
               <div className="flex items-center gap-1.5 shrink-0">
                 {project.verified && (
                   <span
-                    className="text-[#14b8a6]"
+                    className="text-[#4B9C93]"
                     title="Verified project"
                   >
                     <BadgeCheck className="w-4 h-4" />
@@ -48,7 +48,7 @@ export default function ProjectsCard({ projects }) {
               {project.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#E6F9F5] text-[#14b8a6]"
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#E6F9F5] text-[#4B9C93]"
                 >
                   {tag}
                 </span>

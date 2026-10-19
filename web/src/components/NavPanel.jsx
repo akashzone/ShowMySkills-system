@@ -40,9 +40,11 @@ export default function NavPanel({ mainItems, accountItems }) {
         <div className="flex flex-col space-y-8">
           {/* Brand Logo Header matching the design */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#459E93] font-bold shadow">
-              S
-            </div>
+            <img
+              src="/logo.png"
+              alt="ShowMySkills Logo"
+              className="w-8 h-8 object-contain"
+            />
             <span className="text-xl font-bold tracking-wide">ShowMySkills</span>
           </div>
 
@@ -66,19 +68,8 @@ export default function NavPanel({ mainItems, accountItems }) {
           </ul>
         </div>
 
-        {/* Bottom Section: Account Items & Upgrade Box */}
+        {/* Bottom Section: Account Items */}
         <div className="flex flex-col space-y-6">
-          {/* Optional Upgrade Box seen in the image for the dashboard context */}
-          <div className="bg-white text-slate-800 p-4 rounded-2xl shadow-sm flex flex-col space-y-2">
-            <p className="font-semibold text-sm">Upgrade Plan</p>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              To explore more opportunities, more filters upgrade your plan
-            </p>
-            <button className="mt-2 w-full bg-[#459E93] text-white text-xs font-semibold py-2 rounded-xl hover:opacity-90 transition">
-              Upgrade Plan
-            </button>
-          </div>
-
           {/* Account/Footer Links (Profile, Settings, Help) */}
           <ul className="flex flex-col space-y-2 border-t border-white/20 pt-4">
             {accountItems.map(({ label, href }, index) => (

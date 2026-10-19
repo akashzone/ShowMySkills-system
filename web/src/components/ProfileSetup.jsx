@@ -148,7 +148,7 @@ export function ProfileSetup({ role, config }) {
             </div>
           </div>
 
-          <div className="relative mb-8 h-28 rounded-2xl bg-[#fff8f0] sm:h-36">
+          <div className="relative mb-8 h-28 rounded-2xl bg-[#F7F9F9] sm:h-36">
             <label htmlFor="cover-image" className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-2xl text-sm text-slate-400 hover:bg-amber-50/50">
               Add a cover image
               <input id="cover-image" type="file" accept="image/*" onChange={(event) => updateValue("coverImage", event.target.files?.[0] || null)} className="sr-only" />
