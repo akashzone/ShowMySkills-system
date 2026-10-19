@@ -33,7 +33,7 @@ export default function ReputationCard({ data }) {
               /{data.reputationMax}
             </span>
           </span>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F9F5] text-[#14b8a6] border border-[#14b8a6]/15">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F9F5] text-[#4B9C93] border border-[#4B9C93]/15">
             {data.topPercentile}
           </span>
         </div>
@@ -56,7 +56,7 @@ export default function ReputationCard({ data }) {
                 className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{
                   width: `${metric.value}%`,
-                  backgroundColor: metric.color,
+                  backgroundColor: metric.color || "#4B9C93",
                 }}
               />
             </div>
@@ -68,7 +68,7 @@ export default function ReputationCard({ data }) {
       <div className="flex justify-end mt-5 pt-4 border-t border-gray-50">
         <a
           href="#"
-          className="text-sm font-semibold text-[#14b8a6] hover:text-[#0d9488] flex items-center gap-1 transition-colors"
+          className="text-sm font-semibold text-[#4B9C93] hover:text-[#3d867e] flex items-center gap-1 transition-colors"
         >
           View Details
           <ArrowRight className="w-4 h-4" />

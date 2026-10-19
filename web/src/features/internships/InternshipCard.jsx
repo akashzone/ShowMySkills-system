@@ -185,7 +185,7 @@ export default function InternshipCard({
       {isTopCard && (
         <motion.div
           style={{ opacity: acceptStampOpacity }}
-          className="absolute top-6 left-6 z-40 border-4 border-[#2EB89D] text-[#2EB89D] bg-white/90 backdrop-blur-xs font-black text-lg sm:text-xl px-4 py-1 rounded-xl rotate-[-12deg] flex items-center gap-1.5 shadow-lg pointer-events-none"
+          className="absolute top-6 left-6 z-40 border-4 border-[#4B9C93] text-[#4B9C93] bg-white/90 backdrop-blur-xs font-black text-lg sm:text-xl px-4 py-1 rounded-xl rotate-[-12deg] flex items-center gap-1.5 shadow-lg pointer-events-none"
         >
           <CheckCircle className="w-6 h-6 stroke-[3]" />
           ACCEPT
@@ -206,7 +206,7 @@ export default function InternshipCard({
       {/* Company logo area */}
       <div className="relative px-5 pt-5 pb-3">
         <div className="w-full h-[140px] rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center gap-1">
-          <span className="text-2xl font-extrabold text-[#2EB89D] tracking-wider">
+          <span className="text-2xl font-extrabold text-[#4B9C93] tracking-wider">
             {companyLogoText}
           </span>
 
@@ -217,7 +217,7 @@ export default function InternshipCard({
 
         {/* Verified badge */}
         {isVerified && (
-          <span className="absolute top-8 right-8 inline-flex items-center gap-1 text-[11px] font-semibold text-[#2EB89D] bg-[#E6F7F3] border border-[#2EB89D]/20 rounded-full px-2.5 py-0.5">
+          <span className="absolute top-8 right-8 inline-flex items-center gap-1 text-[11px] font-semibold text-[#4B9C93] bg-[#E6F7F3] border border-[#4B9C93]/20 rounded-full px-2.5 py-0.5">
             <BadgeCheck className="w-3 h-3" />
             Verified
           </span>
@@ -269,7 +269,7 @@ export default function InternshipCard({
           {skills.map((skill) => (
             <span
               key={skill}
-              className="text-[11px] font-semibold text-[#2EB89D] bg-[#E6F7F3] px-3 py-1 rounded-full"
+              className="text-[11px] font-semibold text-[#4B9C93] bg-[#E6F7F3] px-3 py-1 rounded-full"
             >
               {skill}
             </span>

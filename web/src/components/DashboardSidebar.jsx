@@ -5,127 +5,269 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Briefcase,
-  Building2,
-  FolderKanban,
+  Users,
+  MessageSquare,
+  Rocket,
   User,
   Settings,
   HelpCircle,
-  GraduationCap,
-  Rocket,
+  Info,
+  FileText,
+  CheckCircle,
+  BarChart3,
+  Sparkles,
+  X,
 } from "lucide-react";
+import { useSidebar } from "@/context/SidebarContext";
 
 /**
- * DashboardSidebar — Fixed left sidebar matching the Figma design.
- *
- * Solid teal background, white text, active state highlight,
- * and an "Upgrade Plan" promotional card.
+ * DashboardSidebar — Dynamic multi-role sidebar for ShowMySkills.
+ * Features responsive mobile drawer animation and role-specific navigation.
  */
-
-const topNavItems = [
-  { label: "Dashboard", href: "/internships", icon: LayoutDashboard },
-  { label: "Internships", href: "/internships#internships", icon: Briefcase },
-  { label: "Jobs", href: "/internships#jobs", icon: Briefcase },
-  { label: "Companies", href: "/internships#companies", icon: Building2 },
-  { label: "Projects", href: "/internships#projects", icon: FolderKanban },
-];
-
-const bottomNavItems = [
-  { label: "Profile", href: "/profile", icon: User },
-  { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Help & Support", href: "/help", icon: HelpCircle },
-];
-
 export default function DashboardSidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
+  const { isOpen, closeSidebar } = useSidebar();
+
+  // Determine current active role from route path
+  const role = pathname.startsWith("/guest")
+    ? "guest"
+    : pathname.startsWith("/company")
+    ? "company"
+    : pathname.startsWith("/admin")
+    ? "admin"
+    : "student";
+
+  // Top navigation items per role
+  let topNavItems = [];
+  let bottomNavItems = [];
+
+  if (role === "guest") {
+    topNavItems = [
+      { label: "Internships", href: "/guest/internships", icon: Briefcase },
+      { label: "People", href: "/guest/people", icon: Users },
+      { label: "Launchpad", href: "/guest/launchpad", icon: Rocket },
+    ];
+    bottomNavItems = [
+      { label: "About Us", href: "/about", icon: Info },
+      { label: "Help & Support", href: "/help", icon: HelpCircle },
+    ];
+  } else if (role === "company") {
+    topNavItems = [
+      { label: "Dashboard", href: "/company/dashboard", icon: LayoutDashboard },
+      { label: "Applications", href: "/company/applications", icon: FileText },
+      { label: "People", href: "/company/people", icon: Users },
+      { label: "Chats", href: "/company/chats", icon: MessageSquare },
+    ];
+    bottomNavItems = [
+      { label: "Company Profile", href: "/company/profile", icon: User },
+      { label: "About Us", href: "/about", icon: Info },
+      { label: "Settings", href: "/settings", icon: Settings },
+      { label: "Help & Support", href: "/help", icon: HelpCircle },
+    ];
+  } else if (role === "admin") {
+    topNavItems = [
+      { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
+      { label: "Users & Handles", href: "/admin/users", icon: Users },
+      { label: "Internships", href: "/admin/internships", icon: Briefcase },
+      { label: "Verifications", href: "/admin/verifications", icon: CheckCircle },
+      { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+    ];
+    bottomNavItems = [
+      { label: "About Us", href: "/about", icon: Info },
+      { label: "Settings", href: "/settings", icon: Settings },
+    ];
+  } else {
+    // Default: Student Portal
+    topNavItems = [
+      { label: "Internships", href: "/student/internships", icon: Briefcase },
+      { label: "People", href: "/student/people", icon: Users },
+      { label: "Chats", href: "/student/chats", icon: MessageSquare },
+      { label: "Launchpad", href: "/student/launchpad", icon: Rocket },
+    ];
+    bottomNavItems = [
+      { label: "Profile", href: "/profile", icon: User },
+      { label: "About Us", href: "/about", icon: Info },
+      { label: "Settings", href: "/settings", icon: Settings },
+      { label: "Help & Support", href: "/help", icon: HelpCircle },
+    ];
+  }
 
   const isActive = (href) => {
-    if (href === "/internships") return pathname === "/internships";
-    if (href === "/profile") return pathname === "/profile";
-    return pathname === href;
+    if (href === "/student/internships") {
+      return (
+        pathname === "/student/internships" ||
+        pathname === "/internships" ||
+        pathname?.startsWith("/internships") ||
+        pathname === "/student/dashboard" ||
+        pathname === "/dashboard"
+      );
+    }
+    if (href === "/student/people") {
+      return (
+        pathname === "/student/people" ||
+        pathname === "/people" ||
+        pathname?.startsWith("/people")
+      );
+    }
+    if (href === "/student/launchpad") {
+      return (
+        pathname === "/student/launchpad" ||
+        pathname === "/launchpad" ||
+        pathname?.startsWith("/launchpad")
+      );
+    }
+    return pathname === href || pathname?.startsWith(href);
   };
 
   return (
-    <aside
-      id="dashboard-sidebar"
-      className="fixed left-0 top-0 bottom-0 w-[220px] bg-[#2EB89D] flex flex-col z-40 overflow-y-auto"
-      style={{ borderTopRightRadius: "24px", borderBottomRightRadius: "24px" }}
-    >
-      {/* ──── Logo ──── */}
-      <div className="flex items-center gap-2.5 px-5 pt-6 pb-8">
-        <div className="h-9 w-9 rounded-lg bg-white/20 flex items-center justify-center">
-          <GraduationCap className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-[17px] font-bold text-white tracking-tight">
-          ShowMySkills
-        </span>
-      </div>
+    <>
+      {/* ──── Mobile Backdrop Blur Overlay ──── */}
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-2xs z-40 transition-opacity duration-300 md:hidden ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={closeSidebar}
+        aria-hidden="true"
+      />
 
-      {/* ──── Top Navigation ──── */}
-      <nav className="flex-1 flex flex-col px-3">
-        <ul className="space-y-1">
-          {topNavItems.map(({ label, href, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <li key={label}>
-                <Link
-                  href={href}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    active
-                      ? "bg-white text-[#2EB89D] shadow-sm"
-                      : "text-white/90 hover:bg-white/15 hover:text-white"
-                  }`}
-                >
-                  <Icon className="w-[18px] h-[18px] shrink-0" />
-                  <span>{label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      {/* ──── Main Animated Sidebar ──── */}
+      <aside
+        id="dashboard-sidebar"
+        className={`fixed left-0 top-0 bottom-0 w-[240px] sm:w-[250px] md:w-[220px] bg-[#4B9C93] flex flex-col justify-between z-50 overflow-hidden py-4 px-3 shadow-2xl md:shadow-none transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{ borderTopRightRadius: "24px", borderBottomRightRadius: "24px" }}
+      >
+        {/* Mobile Close Button */}
+        <button
+          onClick={closeSidebar}
+          aria-label="Close sidebar"
+          className="md:hidden absolute top-3 right-3 text-white/80 hover:text-white p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
-        {/* ──── Upgrade Plan Card ──── */}
-        <div className="mt-8 mx-1 bg-white rounded-2xl p-4 shadow-lg shadow-black/5">
-          <div className="flex items-center justify-center mb-2">
-            <div className="h-8 w-8 rounded-full bg-[#2EB89D]/10 flex items-center justify-center">
-              <Rocket className="w-4 h-4 text-[#2EB89D]" />
+        {/* ──── Logo & Brand Name Stacked ──── */}
+        <Link
+          href="/"
+          onClick={closeSidebar}
+          className="flex flex-col items-center text-center group pt-1 pb-3"
+        >
+          <img
+            src="/logo.png"
+            alt="ShowMySkills Logo"
+            className="h-14 sm:h-16 md:h-20 w-auto my-2"
+          />
+          <span className="text-2xl font-extrabold text-white tracking-tight leading-tight">
+            ShowMySkills
+          </span>
+          {role !== "student" && (
+            <span className="mt-1 px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full bg-white/20 text-white">
+              {role}
+            </span>
+          )}
+        </Link>
+
+        {/* ──── Top Navigation ──── */}
+        <nav className="flex-1 flex flex-col justify-between overflow-hidden">
+          <ul className="space-y-0.5">
+            {topNavItems.map(({ label, href, icon: Icon }) => {
+              const active = isActive(href);
+              return (
+                <li key={label}>
+                  <Link
+                    href={href}
+                    onClick={closeSidebar}
+                    className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
+                      active
+                        ? "bg-white text-[#4B9C93] shadow-sm font-semibold"
+                        : "text-white/90 hover:bg-white/15 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* ──── Role-Specific Middle Action Card ──── */}
+          {role === "guest" ? (
+            <div className="my-2 bg-white rounded-xl p-3 shadow-md shadow-black/5 text-center">
+              <div className="h-6 w-6 rounded-full bg-[#4B9C93]/10 flex items-center justify-center mx-auto mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#4B9C93]" />
+              </div>
+              <h4 className="text-xs font-bold text-gray-900 mb-0.5">
+                Join ShowMySkills
+              </h4>
+              <p className="text-[10px] text-gray-500 leading-tight mb-2">
+                Sign in to apply to internships and save wishlist items
+              </p>
+              <Link
+                href="/signup"
+                onClick={closeSidebar}
+                id="sidebar-guest-join-btn"
+                className="block w-full py-1.5 rounded-full bg-[#4B9C93] text-white text-[11px] font-semibold hover:bg-[#3d867e] transition-colors cursor-pointer text-center"
+              >
+                Sign Up / Log In
+              </Link>
             </div>
-          </div>
-          <h4 className="text-sm font-bold text-gray-900 text-center mb-1">
-            Upgrade Plan
-          </h4>
-          <p className="text-[11px] text-gray-500 text-center leading-relaxed mb-3">
-            To explore more opportunities, more recommendations and for more filters upgrade your plan
-          </p>
-          <button
-            id="upgrade-plan-btn"
-            className="w-full py-2 rounded-full bg-[#2EB89D] text-white text-xs font-semibold hover:bg-[#28A78E] transition-colors cursor-pointer"
-          >
-            Upgrade Plan
-          </button>
-        </div>
+          ) : role === "company" ? (
+            <div className="my-2 bg-white rounded-xl p-3 shadow-md shadow-black/5 text-center">
+              <div className="h-6 w-6 rounded-full bg-[#4B9C93]/10 flex items-center justify-center mx-auto mb-1">
+                <Briefcase className="w-3.5 h-3.5 text-[#4B9C93]" />
+              </div>
+              <h4 className="text-xs font-bold text-gray-900 mb-0.5">
+                Hire Top Students
+              </h4>
+              <p className="text-[10px] text-gray-500 leading-tight mb-2">
+                Post verified internship opportunities and review applications
+              </p>
+              <Link
+                href="/company/applications?new=true"
+                onClick={closeSidebar}
+                id="sidebar-company-post-btn"
+                className="block w-full py-1.5 rounded-full bg-[#4B9C93] text-white text-[11px] font-semibold hover:bg-[#3d867e] transition-colors cursor-pointer text-center"
+              >
+                Post Internship
+              </Link>
+            </div>
+          ) : role === "admin" ? (
+            <div className="my-2 bg-white/15 rounded-xl p-3 text-center border border-white/20">
+              <p className="text-[11px] font-bold text-white mb-0.5">
+                Platform Master
+              </p>
+              <p className="text-[9.5px] text-white/80 leading-tight">
+                All handles & verifications operational
+              </p>
+            </div>
+          ) : null}
 
-        {/* ──── Bottom Navigation ──── */}
-        <ul className="mt-6 mb-6 space-y-1">
-          {bottomNavItems.map(({ label, href, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <li key={label}>
-                <Link
-                  href={href}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    active
-                      ? "bg-white text-[#2EB89D] shadow-sm"
-                      : "text-white/90 hover:bg-white/15 hover:text-white"
-                  }`}
-                >
-                  <Icon className="w-[18px] h-[18px] shrink-0" />
-                  <span>{label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-    </aside>
+          {/* ──── Bottom Navigation ──── */}
+          <ul className="space-y-0.5">
+            {bottomNavItems.map(({ label, href, icon: Icon }) => {
+              const active = isActive(href);
+              return (
+                <li key={label}>
+                  <Link
+                    href={href}
+                    onClick={closeSidebar}
+                    className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
+                      active
+                        ? "bg-white text-[#4B9C93] shadow-sm font-semibold"
+                        : "text-white/90 hover:bg-white/15 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
+    </>
   );
 }

@@ -20,7 +20,7 @@ export default function CompletionBanner({ percentage }) {
       {/* Progress Track */}
       <div className="flex-1 w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#14b8a6] rounded-full transition-all duration-700 ease-out"
+          className="h-full bg-[#4B9C93] rounded-full transition-all duration-700 ease-out"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -28,7 +28,7 @@ export default function CompletionBanner({ percentage }) {
       {/* CTA */}
       <a
         href="#"
-        className="text-sm font-semibold text-[#14b8a6] hover:text-[#0d9488] whitespace-nowrap flex items-center gap-1 transition-colors"
+        className="text-sm font-semibold text-[#4B9C93] hover:text-[#3d867e] whitespace-nowrap flex items-center gap-1 transition-colors"
       >
         Complete your profile
         <ArrowRight className="w-4 h-4" />

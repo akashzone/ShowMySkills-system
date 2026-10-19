@@ -1,6 +1,7 @@
 "use client";
 
 import { BadgeCheck, Pencil, Download } from "lucide-react";
+import StudentRoleTag from "@/components/StudentRoleTag";
 
 /**
  * ProfileHeader — Top card showing user identity, verification status,
@@ -43,8 +44,11 @@ export default function ProfileHeader({ data }) {
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
                   {data.name}
                 </h2>
+                {data.tag && (
+                  <StudentRoleTag tag={data.tag} size="sm" />
+                )}
                 {data.verified && (
-                  <span className="inline-flex items-center gap-1 bg-[#14b8a6] text-white text-[10px] font-bold uppercase tracking-wider rounded px-2 py-0.5">
+                  <span className="inline-flex items-center gap-1 bg-[#4B9C93] text-white text-[10px] font-bold uppercase tracking-wider rounded px-2 py-0.5">
                     <BadgeCheck className="w-3 h-3" />
                     Verified
                   </span>
@@ -62,7 +66,7 @@ export default function ProfileHeader({ data }) {
                 {data.location}
               </p>
 
-              <p className="text-xs text-[#14b8a6] font-medium mt-1">
+              <p className="text-xs text-[#4B9C93] font-medium mt-1">
                 {data.openToWorkMessage}
               </p>
             </div>
@@ -71,14 +75,14 @@ export default function ProfileHeader({ data }) {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 id="edit-profile-btn"
-                className="px-4 py-2 rounded-lg border border-[#14b8a6] text-[#14b8a6] text-sm font-semibold hover:bg-[#14b8a6]/5 transition-colors cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg border border-[#4B9C93] text-[#4B9C93] text-sm font-semibold hover:bg-[#4B9C93]/5 transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 Edit Profile
               </button>
               <button
                 id="download-resume-btn"
-                className="px-4 py-2 rounded-lg bg-[#14b8a6] text-white text-sm font-semibold hover:bg-[#0d9488] transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm shadow-[#14b8a6]/20"
+                className="px-4 py-2 rounded-lg bg-[#4B9C93] text-white text-sm font-semibold hover:bg-[#3d867e] transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm shadow-[#4B9C93]/20"
               >
                 <Download className="w-3.5 h-3.5" />
                 Download Resume
@@ -93,7 +97,7 @@ export default function ProfileHeader({ data }) {
         {data.primarySkills.map((skill) => (
           <span
             key={skill}
-            className="px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F9F5] text-[#14b8a6] border border-[#14b8a6]/15"
+            className="px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F9F5] text-[#4B9C93] border border-[#4B9C93]/15"
           >
             {skill}
           </span>

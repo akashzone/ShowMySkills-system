@@ -25,6 +25,7 @@ import {
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import InternshipCard from "@/features/internships/InternshipCard";
+import { mockInternships } from "@/features/internships/mockData";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -257,10 +258,11 @@ export default function InternshipsPage() {
       setAllInternships(mapped);
       setCards(mapped.filter((item) => !actionedIds.has(item.id)));
     } catch (error) {
-      console.error("Failed to fetch internships:", error);
-      setApiError(
-        "Unable to load internships. Please verify the backend API server is reachable."
-      );
+      console.warn("Backend API unreachable, using sample internships:", error);
+      // Seamless fallback to mock data when backend is not running
+      setAllInternships(mockInternships);
+      setCards(mockInternships);
+      setApiError("");
     } finally {
       setLoading(false);
     }
@@ -269,6 +271,14 @@ export default function InternshipsPage() {
   useEffect(() => {
     fetchInternships();
     fetchMyActions();
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && tabParam.toLowerCase() === "saved") {
+        setActiveTab("Saved");
+      }
+    }
   }, [fetchInternships, fetchMyActions]);
 
   // Local search keeps the displayed cards responsive while typing.
@@ -468,7 +478,7 @@ export default function InternshipsPage() {
     loading || Boolean(apiError) || filteredCards.length === 0;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex">
+    <div className="min-h-screen bg-[#F7F9F9] flex">
       <DashboardSidebar />
 
       <div className="flex-1 md:ml-[220px] ml-0 flex flex-col min-h-screen relative">
@@ -483,22 +493,22 @@ export default function InternshipsPage() {
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-gray-900/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#2EB89D]" />
+              <Sparkles className="w-3.5 h-3.5 text-[#4B9C93]" />
               {toastMessage}
             </motion.div>
           )}
         </AnimatePresence>
 
         <main className="flex-1 flex flex-col items-center px-4 sm:px-6 py-6 overflow-y-auto">
-          {/* Search bar */}
-          <div className="w-full max-w-[600px] flex items-center gap-3 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-
+          {/* ──── Search Bar & Filter Button ──── */}
+          <div className="flex items-center gap-3 sm:gap-4 mb-8 w-full max-w-4xl mx-auto">
+            {/* Search Input Container */}
+            <div className="flex-1 relative flex items-center bg-white border-2 border-[#E5E6E5] rounded-full h-14 sm:h-16 px-5 sm:px-6 shadow-xs focus-within:border-[#4B9C93] focus-within:ring-2 focus-within:ring-[#4B9C93]/15 transition-all">
+              <Search className="w-5 h-5 text-[#292D32] shrink-0" strokeWidth={2} />
               <input
                 id="internship-search"
                 type="text"
-                placeholder="Search internships, jobs, companies..."
+                placeholder="Search internships, roles, companies, skills..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 onKeyDown={(event) => {
@@ -506,21 +516,21 @@ export default function InternshipsPage() {
                     handleApplyFilters();
                   }
                 }}
-                className="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-full text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-[#2EB89D] focus:ring-2 focus:ring-[#2EB89D]/10 shadow-sm transition-all"
+                className="w-full bg-transparent pl-3 sm:pl-4 pr-3 text-sm sm:text-[15px] font-medium text-[#101828] placeholder:text-[#67727A]/80 focus:outline-none"
               />
-
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
                   aria-label="Clear search"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
+            {/* Circular Filter Button */}
             {activeTab === "Internships" && (
               <button
                 id="filter-btn"
@@ -528,13 +538,11 @@ export default function InternshipsPage() {
                 aria-label="Toggle filters"
                 aria-expanded={showFilters}
                 onClick={() => setShowFilters((previous) => !previous)}
-                className={`w-11 h-11 rounded-full border flex items-center justify-center shadow-sm transition-all cursor-pointer ${
-                  showFilters
-                    ? "bg-[#E6F7F3] border-[#2EB89D] text-[#2EB89D]"
-                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#E5E6E5] bg-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs hover:border-[#4B9C93] hover:bg-[#F8FAFC] transition-all ${
+                  showFilters ? "border-[#4B9C93] ring-2 ring-[#4B9C93]/20" : ""
                 }`}
               >
-                <SlidersHorizontal className="w-5 h-5" />
+                <SlidersHorizontal className="w-5 h-5 sm:w-6 sm:h-6 text-[#292D32]" strokeWidth={2} />
               </button>
             )}
           </div>
@@ -583,7 +591,7 @@ export default function InternshipsPage() {
                             mode: event.target.value,
                           }))
                         }
-                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:border-[#2EB89D]"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:border-[#4B9C93]"
                       >
                         <option value="">All modes</option>
                         <option value="remote">Remote</option>
@@ -612,7 +620,7 @@ export default function InternshipsPage() {
                           }))
                         }
                         placeholder="e.g. Noida, Remote"
-                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#2EB89D]"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#4B9C93]"
                       />
                     </div>
 
@@ -636,7 +644,7 @@ export default function InternshipsPage() {
                           }))
                         }
                         placeholder="e.g. React, Java, Python"
-                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#2EB89D]"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#4B9C93]"
                       />
                     </div>
 
@@ -658,7 +666,7 @@ export default function InternshipsPage() {
                             verified: event.target.value,
                           }))
                         }
-                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:border-[#2EB89D]"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:border-[#4B9C93]"
                       >
                         <option value="">All companies</option>
                         <option value="true">Verified only</option>
@@ -681,7 +689,7 @@ export default function InternshipsPage() {
                       type="button"
                       onClick={handleApplyFilters}
                       disabled={loading}
-                      className="flex-1 rounded-full bg-[#2EB89D] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#269a83] disabled:opacity-50"
+                      className="flex-1 rounded-full bg-[#4B9C93] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#3d867e] disabled:opacity-50"
                     >
                       {loading ? "Applying..." : "Apply Filters"}
                     </button>
@@ -701,7 +709,7 @@ export default function InternshipsPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer ${
                   activeTab === tab.id
-                    ? "bg-[#2EB89D] text-white shadow-md shadow-[#2EB89D]/20"
+                    ? "bg-[#4B9C93] text-white shadow-md shadow-[#4B9C93]/20"
                     : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-sm"
                 }`}
               >
@@ -717,7 +725,7 @@ export default function InternshipsPage() {
               <div className="relative w-full max-w-[480px] h-[470px] mb-8 flex items-center justify-center">
                 {loading ? (
                   <div className="flex flex-col items-center gap-3 text-sm text-gray-500">
-                    <div className="w-8 h-8 border-4 border-[#2EB89D]/20 border-t-[#2EB89D] rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-4 border-[#4B9C93]/20 border-t-[#4B9C93] rounded-full animate-spin" />
                     Loading internships...
                   </div>
                 ) : apiError ? (
@@ -727,7 +735,7 @@ export default function InternshipsPage() {
                     <button
                       type="button"
                       onClick={() => fetchInternships()}
-                      className="px-6 py-2.5 rounded-full bg-[#2EB89D] text-white text-sm font-semibold hover:bg-[#269a83]"
+                      className="px-6 py-2.5 rounded-full bg-[#4B9C93] text-white text-sm font-semibold hover:bg-[#3d867e]"
                     >
                       Try Again
                     </button>
@@ -753,7 +761,7 @@ export default function InternshipsPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="w-full max-w-[480px] bg-white rounded-2xl p-8 border border-gray-100 shadow-xl shadow-black/5 flex flex-col items-center text-center"
                   >
-                    <div className="w-16 h-16 rounded-full bg-[#E6F7F3] border border-[#2EB89D]/20 flex items-center justify-center text-[#2EB89D] mb-4">
+                    <div className="w-16 h-16 rounded-full bg-[#E6F7F3] border border-[#4B9C93]/20 flex items-center justify-center text-[#4B9C93] mb-4">
                       <Sparkles className="w-8 h-8" />
                     </div>
 
@@ -771,7 +779,7 @@ export default function InternshipsPage() {
                       id="reload-deck-btn"
                       type="button"
                       onClick={handleReloadDeck}
-                      className="px-6 py-2.5 rounded-full bg-[#2EB89D] text-white text-sm font-semibold hover:bg-[#269a83] active:scale-95 shadow-md shadow-[#2EB89D]/25 transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                      className="px-6 py-2.5 rounded-full bg-[#4B9C93] text-white text-sm font-semibold hover:bg-[#3d867e] active:scale-95 shadow-md shadow-[#4B9C93]/25 transition-all duration-200 flex items-center gap-2 cursor-pointer"
                     >
                       <RotateCcw className="w-4 h-4" />
                       Reload Internships
@@ -832,7 +840,7 @@ export default function InternshipsPage() {
                     onClick={() => triggerButtonSwipe("right")}
                     disabled={actionsDisabled}
                     aria-label="Accept internship"
-                    className={`w-14 h-14 rounded-full bg-white border-2 border-[#2EB89D] flex items-center justify-center text-[#2EB89D] shadow-md shadow-[#2EB89D]/10 transition-all duration-200 ${
+                    className={`w-14 h-14 rounded-full bg-white border-2 border-[#4B9C93] flex items-center justify-center text-[#4B9C93] shadow-md shadow-[#4B9C93]/10 transition-all duration-200 ${
                       actionsDisabled
                         ? "opacity-40 cursor-not-allowed"
                         : "hover:bg-[#E6F7F3] hover:scale-110 active:scale-95 cursor-pointer"
@@ -863,9 +871,9 @@ export default function InternshipsPage() {
                       title={internship.roleTitle}
                       className={`h-1.5 rounded-full transition-all duration-300 ${
                         isCurrent
-                          ? "w-6 bg-[#2EB89D]"
+                          ? "w-6 bg-[#4B9C93]"
                           : !isRemaining
-                          ? "w-1.5 bg-[#2EB89D]/40"
+                          ? "w-1.5 bg-[#4B9C93]/40"
                           : "w-1.5 bg-gray-200"
                       }`}
                     />
@@ -885,14 +893,14 @@ export default function InternshipsPage() {
                     Opportunities you bookmarked to review or apply later.
                   </p>
                 </div>
-                <span className="text-xs font-semibold bg-[#E6F7F3] text-[#2EB89D] px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold bg-[#E6F7F3] text-[#4B9C93] px-3 py-1 rounded-full">
                   {filteredSavedItems.length} Saved
                 </span>
               </div>
 
               {loadingActions ? (
                 <div className="py-16 flex flex-col items-center justify-center gap-3 text-sm text-gray-500">
-                  <div className="w-8 h-8 border-4 border-[#2EB89D]/20 border-t-[#2EB89D] rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-4 border-[#4B9C93]/20 border-t-[#4B9C93] rounded-full animate-spin" />
                   Loading your saved internships...
                 </div>
               ) : filteredSavedItems.length > 0 ? (
@@ -913,7 +921,7 @@ export default function InternshipsPage() {
                             {intern.role || "Internship"}
                           </h3>
                           {intern.isVerified && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#2EB89D] bg-[#E6F7F3] px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#4B9C93] bg-[#E6F7F3] px-2 py-0.5 rounded-full">
                               <BadgeCheck className="w-3 h-3" />
                               Verified
                             </span>
@@ -949,7 +957,7 @@ export default function InternshipsPage() {
                             {intern.skills.slice(0, 4).map((skill) => (
                               <span
                                 key={skill}
-                                className="text-[10px] font-semibold text-[#2EB89D] bg-[#E6F7F3] px-2.5 py-0.5 rounded-full"
+                                className="text-[10px] font-semibold text-[#4B9C93] bg-[#E6F7F3] px-2.5 py-0.5 rounded-full"
                               >
                                 {skill}
                               </span>
@@ -966,7 +974,7 @@ export default function InternshipsPage() {
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                         {isAccepted ? (
-                          <span className="text-xs font-semibold text-[#2EB89D] bg-[#E6F7F3] px-3.5 py-2 rounded-full flex items-center gap-1.5 border border-[#2EB89D]/20">
+                          <span className="text-xs font-semibold text-[#4B9C93] bg-[#E6F7F3] px-3.5 py-2 rounded-full flex items-center gap-1.5 border border-[#4B9C93]/20">
                             <CheckCircle className="w-4 h-4" />
                             Accepted
                           </span>
@@ -976,7 +984,7 @@ export default function InternshipsPage() {
                             onClick={() =>
                               handleAcceptFromSaved(intern._id, intern.role)
                             }
-                            className="px-4 py-2 bg-[#2EB89D] text-white text-xs font-semibold rounded-full hover:bg-[#269a83] active:scale-95 transition-all shadow-sm shadow-[#2EB89D]/20 flex items-center gap-1.5 cursor-pointer"
+                            className="px-4 py-2 bg-[#4B9C93] text-white text-xs font-semibold rounded-full hover:bg-[#3d867e] active:scale-95 transition-all shadow-sm shadow-[#4B9C93]/20 flex items-center gap-1.5 cursor-pointer"
                           >
                             <Check className="w-3.5 h-3.5" />
                             Accept / Apply
@@ -1012,7 +1020,7 @@ export default function InternshipsPage() {
                 })
               ) : (
                 <div className="bg-white rounded-2xl p-10 border border-gray-200 shadow-sm text-center flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-full bg-[#E6F7F3] flex items-center justify-center text-[#2EB89D] mb-4">
+                  <div className="w-14 h-14 rounded-full bg-[#E6F7F3] flex items-center justify-center text-[#4B9C93] mb-4">
                     <Bookmark className="w-7 h-7" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
@@ -1024,7 +1032,7 @@ export default function InternshipsPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("Internships")}
-                    className="px-6 py-2.5 rounded-full bg-[#2EB89D] text-white text-sm font-semibold hover:bg-[#269a83] transition-all"
+                    className="px-6 py-2.5 rounded-full bg-[#4B9C93] text-white text-sm font-semibold hover:bg-[#3d867e] transition-all"
                   >
                     Go to Discovery Deck
                   </button>
@@ -1043,14 +1051,14 @@ export default function InternshipsPage() {
                     Internships where you swiped right or accepted interest.
                   </p>
                 </div>
-                <span className="text-xs font-semibold bg-[#E6F7F3] text-[#2EB89D] px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold bg-[#E6F7F3] text-[#4B9C93] px-3 py-1 rounded-full">
                   {filteredAcceptedItems.length} Accepted
                 </span>
               </div>
 
               {loadingActions ? (
                 <div className="py-16 flex flex-col items-center justify-center gap-3 text-sm text-gray-500">
-                  <div className="w-8 h-8 border-4 border-[#2EB89D]/20 border-t-[#2EB89D] rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-4 border-[#4B9C93]/20 border-t-[#4B9C93] rounded-full animate-spin" />
                   Loading your accepted internships...
                 </div>
               ) : filteredAcceptedItems.length > 0 ? (
@@ -1070,7 +1078,7 @@ export default function InternshipsPage() {
                             {intern.role || "Internship"}
                           </h3>
                           {intern.isVerified && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#2EB89D] bg-[#E6F7F3] px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#4B9C93] bg-[#E6F7F3] px-2 py-0.5 rounded-full">
                               <BadgeCheck className="w-3 h-3" />
                               Verified
                             </span>
@@ -1106,7 +1114,7 @@ export default function InternshipsPage() {
                             {intern.skills.map((skill) => (
                               <span
                                 key={skill}
-                                className="text-[10px] font-semibold text-[#2EB89D] bg-[#E6F7F3] px-2.5 py-0.5 rounded-full"
+                                className="text-[10px] font-semibold text-[#4B9C93] bg-[#E6F7F3] px-2.5 py-0.5 rounded-full"
                               >
                                 {skill}
                               </span>
@@ -1117,7 +1125,7 @@ export default function InternshipsPage() {
 
                       {/* Right Status / Links */}
                       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                        <span className="text-xs font-semibold text-[#2EB89D] bg-[#E6F7F3] px-3.5 py-2 rounded-full flex items-center gap-1.5 border border-[#2EB89D]/20">
+                        <span className="text-xs font-semibold text-[#4B9C93] bg-[#E6F7F3] px-3.5 py-2 rounded-full flex items-center gap-1.5 border border-[#4B9C93]/20">
                           <CheckCircle className="w-4 h-4" />
                           Accepted / Interested
                         </span>
@@ -1139,7 +1147,7 @@ export default function InternshipsPage() {
                 })
               ) : (
                 <div className="bg-white rounded-2xl p-10 border border-gray-200 shadow-sm text-center flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-full bg-[#E6F7F3] flex items-center justify-center text-[#2EB89D] mb-4">
+                  <div className="w-14 h-14 rounded-full bg-[#E6F7F3] flex items-center justify-center text-[#4B9C93] mb-4">
                     <CheckCircle className="w-7 h-7" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
@@ -1151,7 +1159,7 @@ export default function InternshipsPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("Internships")}
-                    className="px-6 py-2.5 rounded-full bg-[#2EB89D] text-white text-sm font-semibold hover:bg-[#269a83] transition-all"
+                    className="px-6 py-2.5 rounded-full bg-[#4B9C93] text-white text-sm font-semibold hover:bg-[#3d867e] transition-all"
                   >
                     Go to Discovery Deck
                   </button>
@@ -1161,7 +1169,7 @@ export default function InternshipsPage() {
           ) : (
             /* ──────────────── JOBS / COMPANIES PLACEHOLDER ──────────────── */
             <div className="w-full max-w-[600px] bg-white rounded-2xl p-10 border border-gray-200 shadow-sm text-center flex flex-col items-center mb-8">
-              <div className="w-14 h-14 rounded-full bg-[#E6F7F3] flex items-center justify-center text-[#2EB89D] mb-4">
+              <div className="w-14 h-14 rounded-full bg-[#E6F7F3] flex items-center justify-center text-[#4B9C93] mb-4">
                 {activeTab === "Jobs" ? (
                   <Briefcase className="w-7 h-7" />
                 ) : (
@@ -1179,7 +1187,7 @@ export default function InternshipsPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("Internships")}
-                className="px-6 py-2.5 rounded-full bg-[#2EB89D] text-white text-sm font-semibold hover:bg-[#269a83] transition-all"
+                className="px-6 py-2.5 rounded-full bg-[#4B9C93] text-white text-sm font-semibold hover:bg-[#3d867e] transition-all"
               >
                 Back to Discovery Deck
               </button>

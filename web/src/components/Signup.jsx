@@ -24,9 +24,11 @@ export function Signup({ role, config }) {
           <div>
             {/* Brand Logo & Name */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-[#459E93] font-bold shadow">
-                S
-              </div>
+              <img
+                src="/logo.png"
+                alt="ShowMySkills Logo"
+                className="w-10 h-10 object-contain"
+              />
               <span className="text-2xl font-bold tracking-wide">ShowMySkills</span>
             </div>
 
@@ -47,9 +49,11 @@ export function Signup({ role, config }) {
 
         {/* Mobile Header: Only "ShowMySkills" branding visible on mobile viewports */}
         <div className="lg:hidden flex items-center space-x-3 mb-6 text-white">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#459E93] font-bold shadow">
-            S
-          </div>
+          <img
+            src="/logo.png"
+            alt="ShowMySkills Logo"
+            className="w-8 h-8 object-contain"
+          />
           <span className="text-xl font-bold tracking-wide">ShowMySkills</span>
         </div>
 

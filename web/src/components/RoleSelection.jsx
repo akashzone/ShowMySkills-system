@@ -34,9 +34,11 @@ export default function RoleSelection({ onSelectRole }) {
         <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10 relative">
           {/* Top Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-              <GraduationCap className="w-6 h-6 text-[#2b8a78]" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="ShowMySkills Logo"
+              className="w-10 h-10 object-contain"
+            />
             <span className="text-white text-2xl font-bold tracking-tight">
               ShowMySkills
             </span>

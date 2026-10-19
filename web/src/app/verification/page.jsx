@@ -31,10 +31,10 @@ export default function VerificationPage() {
       <div className="mx-auto max-w-3xl">
 
         <button
-          onClick={() => router.push('/dashboard')}
-          className="mb-6 text-sm font-medium text-teal-700 hover:text-teal-900"
+          onClick={() => router.push('/student/internships')}
+          className="mb-6 text-sm font-medium text-teal-700 hover:text-teal-900 cursor-pointer"
         >
-          ← Back to Dashboard
+          ← Back to Internships
         </button>
 
         <section className="mb-8">
