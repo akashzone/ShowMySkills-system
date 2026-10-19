@@ -96,7 +96,16 @@ export default function LoginPage() {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-        </form>
+
+          {/* Footer Signup Link */}
+          <p className="text-center text-xs text-gray-500 mt-6">
+            Don&apos;t have an account?{" "}
+            <a href="#signup" className="text-[#00897b] font-semibold hover:underline">
+              Sign Up
+            </a>
+          </p>
+
+        </div>
       </div>
     </main>
   );
