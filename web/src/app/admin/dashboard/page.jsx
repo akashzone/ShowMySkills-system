@@ -164,27 +164,7 @@ export default function AdminDashboardPage() {
         <DashboardHeader />
 
         <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full">
-          {/* Admin Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-[#181E29] text-white p-6 sm:p-8 rounded-3xl shadow-sm">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-semibold mb-2">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Superadmin Control Node</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Global Platform Oversight & Moderation
-              </h2>
-              <p className="text-gray-400 text-sm mt-1 max-w-xl">
-                Manage ecosystem handles, approve institution and company credentials, and maintain skill verification standards.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="px-4 py-2 rounded-full text-xs font-semibold bg-white/10 text-white">
-                Cluster: Production-Asia-South1
-              </span>
-            </div>
-          </div>
-
+    
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {kpis.map(({ label, value, status, icon: Icon, color, bg }) => (
