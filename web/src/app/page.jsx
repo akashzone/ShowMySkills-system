@@ -5,14 +5,14 @@ import { Star, Zap, FileText, MessageCircle } from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-[#FFFFFF] flex flex-col justify-between items-center p-3 sm:p-4 md:p-5 lg:p-6 overflow-hidden">
+    <main className="min-h-screen bg-[#FFFFFF] flex flex-col justify-between items-center p-2 pb-6 overflow-hidden">
       {/* Top Navigation */}
-      <nav className="flex w-full max-w-[1360px] items-center justify-between px-1 sm:px-3 relative z-20">
+      <nav className="flex w-full max-w-[1360px] items-center justify-between px-4 sm:px-3 relative z-20">
         <Link href="/" className="flex items-center group">
           <img
-            src="/Logo.jpg"
+            src="/logo.png"
             alt="ShowMySkills Logo"
-            className="h-14 sm:h-16 md:h-20 w-auto "
+            className="h-14 sm:h-16 md:h-20 w-auto my-2"
           />
         </Link>
         <div className="flex items-center gap-4">
@@ -40,8 +40,8 @@ export default function LandingPage() {
             <FileText className="w-11 h-11 sm:w-13 sm:h-13" strokeWidth={1.4} />
           </div>
 
-          {/* Middle-Left Chat Bubble & Activity Doodle */}
-          <div className="absolute top-[48%] -translate-y-1/2 left-6 sm:left-10 md:left-14 flex items-center space-x-2.5">
+          {/* Middle-Left Chat Bubble & Activity Doodle (hidden on small mobile to avoid text overlap) */}
+          <div className="absolute hidden sm:flex top-[48%] -translate-y-1/2 left-6 sm:left-10 md:left-14 items-center space-x-2.5">
             <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[#BFDBFE] rounded-full" />
             <div className="space-y-1">
               <div className="w-8 sm:w-10 h-1.5 sm:h-2 bg-[#BFDBFE] rounded-full" />
@@ -74,10 +74,10 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Center Text Content */}
-        <div className="relative z-20 max-w-3xl mx-auto px-4 text-center flex flex-col items-center">
+        <div className="relative z-20 max-w-3xl mx-auto px-4 text-center flex flex-col items-center -mt-6 sm:-mt-2 md:mt-0">
           {/* Main Brand with beta tag */}
-          <div className="inline-flex items-baseline justify-center relative mb-2 sm:mb-3">
-            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight text-[#00B69B]">
+          <div className="inline-flex items-baseline justify-center relative mb-1.5 sm:mb-3">
+            <span className="text-4xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight text-[#00B69B]">
               ShowMySkills
             </span>
             <span className="text-xs sm:text-[13px] font-normal text-gray-500 ml-1.5 -translate-y-3 sm:-translate-y-4">
@@ -86,30 +86,30 @@ export default function LandingPage() {
           </div>
 
           {/* 3-Line Core Catchphrase */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-bold text-[#181E29] leading-[1.12] tracking-tight mb-4 sm:mb-5">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-bold text-[#181E29] leading-[1.15] sm:leading-[1.12] tracking-tight mb-3 sm:mb-5">
             <span className="block">Create Your Portfolio</span>
             <span className="block">Showcase your skills</span>
             <span className="block">Get discovered</span>
           </h1>
 
-          {/* Value Proposition Description (exact 2 lines) */}
-          <p className="text-[14.5px] sm:text-base md:text-[16.5px] text-gray-600 max-w-[700px] mx-auto mb-6 sm:mb-8 leading-relaxed font-normal">
+          {/* Value Proposition Description (exact 2 lines on larger screens) */}
+          <p className="text-[13.5px] sm:text-base md:text-[16.5px] text-gray-600 max-w-[700px] mx-auto mb-5 sm:mb-8 leading-relaxed font-normal">
             A platform that empowers creators, coders, designers, and doers to showcase their skills,
             <br className="hidden sm:inline" />{" "}
             rank among the best, and get noticed by peers and professionals.
           </p>
 
           {/* Call to Action Buttons */}
-          <div className="flex flex-row items-center justify-center gap-4 sm:gap-5">
+          <div className="flex flex-row items-center justify-center gap-3 sm:gap-5 mb-8 sm:mb-0">
             <Link
               href="/login"
-              className="cursor-pointer bg-[#FFF9F1] hover:bg-white/80 active:scale-95 text-[#181E29] border border-gray-900 px-9 sm:px-11 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-semibold transition-all shadow-xs"
+              className="cursor-pointer bg-[#FFF9F1] hover:bg-white/80 active:scale-95 text-[#181E29] border border-gray-900 px-7 sm:px-11 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-semibold transition-all shadow-xs"
             >
               More
             </Link>
             <Link
               href="/login"
-              className="cursor-pointer bg-[#00B69B] hover:bg-[#00a38b] active:scale-95 text-white px-7 sm:px-9 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-semibold transition-all shadow-[0_6px_20px_rgba(0,182,155,0.35)] hover:shadow-[0_8px_24px_rgba(0,182,155,0.45)]"
+              className="cursor-pointer bg-[#00B69B] hover:bg-[#00a38b] active:scale-95 text-white px-6 sm:px-9 py-2 sm:py-3 rounded-full text-sm sm:text-lg font-semibold transition-all"
             >
               Get Started
             </Link>
@@ -117,20 +117,20 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom Left Illustration - Coder */}
-        <div className="absolute bottom-0 left-2 sm:left-4 md:left-6 lg:left-8 z-10 pointer-events-none select-none">
+        <div className="absolute bottom-0 left-1 sm:left-4 md:left-6 lg:left-8 z-10 pointer-events-none select-none">
           <img
             src="/coder.png"
             alt="Developer coding at desk"
-            className="w-52 sm:w-60 md:w-72 lg:w-80 xl:w-[360px] max-w-[28vw] object-contain drop-shadow-xs"
+            className="w-64 sm:w-60 md:w-72 lg:w-80 object-contain drop-shadow-xs"
           />
         </div>
 
         {/* Bottom Right Illustration - Ideaman */}
-        <div className="absolute -bottom-9 sm:-bottom-10 md:-bottom-11 lg:-bottom-12 xl:-bottom-13 right-2 sm:right-4 md:right-6 lg:right-8 z-10 pointer-events-none select-none">
+        <div className="absolute -bottom-9 sm:-bottom-10 md:-bottom-11 lg:-bottom-12 xl:-bottom-13 right-1 sm:right-4 md:right-6 lg:right-8 z-10 pointer-events-none select-none">
           <img
             src="/ideaman.png"
             alt="Creative idea generator"
-            className="h-64 sm:h-74 md:h-84 lg:h-[390px] xl:h-[420px] max-h-[50vh] w-auto object-contain drop-shadow-xs"
+            className="h-40 sm:h-74 md:h-84 lg:h-[390px] xl:h-[420px] max-h-[50vh] w-auto object-contain drop-shadow-xs"
           />
         </div>
       </div>

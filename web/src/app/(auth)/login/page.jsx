@@ -104,9 +104,8 @@ export default function LoginPage() {
               Sign Up
             </a>
           </p>
-
-        </div>
+        </form>
       </div>
-    </main>
+    </div>
   );
 }

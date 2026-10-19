@@ -11,7 +11,11 @@ export const metadata = {
   title: "ShowMySkills | Showcase Your Talent & Build Your Portfolio",
   description: "ShowMySkills empowers creators, coders, designers, and doers to showcase their skills, build portfolios, rank among the best, and get noticed by peers and professionals.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/logo.png" }
+    ],
+    apple: "/logo.png",
   },
 };
 
