@@ -25,13 +25,13 @@ const roleConfigs = {
     illustration: "https://api.builder.io/api/v1/image/assets/TEMP/0a67d99783949b6ccf1bb5793dd05c0cb28f8899?width=964",
     dashboardRoute: "/company/dashboard",
   },
-  college: {
-    title: "College Log In",
-    tagline: "Improve placement outcomes with\nshowmyskills",
-    nameLabel: "College Name",
-    namePlaceholder: "e.g. CBIT College",
-    emailLabel: "College Email Address",
-    emailPlaceholder: "you@university.edu",
+  admin: {
+    title: "Admin Log In",
+    tagline: "Manage and monitor platform\noutcomes with showmyskills",
+    nameLabel: "Admin Name",
+    namePlaceholder: "e.g. System Administrator",
+    emailLabel: "Admin Email Address",
+    emailPlaceholder: "admin@showmyskills.com",
     illustration: "https://api.builder.io/api/v1/image/assets/TEMP/e1b6e7e45b78e909b5d732ae1618fa90b05ff421?width=940",
     dashboardRoute: "/admin/dashboard",
   },
@@ -65,58 +65,50 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="w-full max-w-[1284px] min-h-[836px] rounded-[36px] sm:rounded-[50px] lg:rounded-[70px] bg-[#4B9C93] p-6 sm:p-10 lg:p-12 relative flex flex-col lg:flex-row items-center justify-between shadow-2xl overflow-hidden my-4">
+    <div className="w-full max-w-[1240px] bg-[#4B9C93] relative flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
       {/* ──── Left Side: Branding & Role Illustration ──── */}
-      <div className="w-full lg:w-[460px] flex flex-col justify-between self-stretch z-10 py-2 lg:py-6">
+      <div className="w-full lg:w-[440px] flex flex-col justify-between self-stretch z-10 py-2">
         <div>
           {/* Logo & Platform Name */}
-          <Link href="/" className="inline-flex items-center gap-4 group mb-8">
+          <Link href="/" className="inline-flex items-center gap-3.5 group mb-6">
             <img
               src="/logo.png"
               alt="ShowMySkills Logo"
-              className="w-14 sm:w-[70px] h-auto object-contain"
+              className="w-12 sm:w-[60px] h-auto object-contain"
             />
-            <span className="text-white font-bold text-3xl sm:text-4xl tracking-tight">
+            <span className="text-white font-bold text-2xl sm:text-3xl tracking-tight">
               ShowMySkills
             </span>
           </Link>
 
           {/* Dynamic Headings */}
-          <div className="mb-6">
-            <h1 className="text-white font-bold text-2xl sm:text-3xl lg:text-[30px] leading-tight mb-2">
+          <div className="mb-4">
+            <h1 className="text-white font-bold text-2xl sm:text-3xl lg:text-[28px] leading-tight mb-2">
               {config.title}
             </h1>
-            <p className="text-white/95 font-medium text-base sm:text-lg lg:text-[20px] leading-relaxed whitespace-pre-line">
+            <p className="text-white/95 font-medium text-sm sm:text-base lg:text-[17px] leading-relaxed whitespace-pre-line">
               {config.tagline}
             </p>
           </div>
         </div>
 
         {/* Illustration with Subtle Shadow Ellipse */}
-        <div className="relative w-full max-w-[460px] mx-auto mt-auto pt-6 flex flex-col items-center">
+        <div className="relative w-full max-w-[420px] mx-auto mt-auto pt-2 flex flex-col items-center">
           <img
             src={config.illustration}
             alt={`${activeRole} illustration`}
-            className="w-full max-h-[330px] object-contain drop-shadow-md relative z-10"
+            className="w-full max-h-[300px] object-contain drop-shadow-md relative z-10"
           />
           {/* Bottom Ellipse Shadow */}
-          <div className="w-[85%] h-4 bg-black/15 rounded-full blur-[8px] mt-[-10px] z-0" />
+          <div className="w-[85%] h-3 bg-black/15 rounded-full blur-[6px] mt-[-8px] z-0" />
         </div>
       </div>
 
       {/* ──── Right Side: Floating White Form Card ──── */}
-      <div className="w-full lg:w-[672px] min-h-[740px] rounded-[32px] sm:rounded-[42px] bg-white shadow-[16px_20px_63.8px_rgba(0,0,0,0.25)] p-6 sm:p-10 lg:p-12 relative flex flex-col justify-between mt-8 lg:mt-0 z-20">
+      <div className="w-full lg:w-[620px] rounded-[28px] sm:rounded-[36px] bg-white shadow-[16px_20px_50px_rgba(0,0,0,0.18)] p-6 sm:p-8 lg:p-10 relative flex flex-col justify-between z-20">
         {/* Top Header Row with Back Button & Role Switcher */}
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <Link
-            href="/"
-            className="w-[38px] h-[38px] rounded-full border border-[#C9C9C9] bg-white hover:bg-gray-50 flex items-center justify-center shrink-0 transition-colors shadow-xs"
-            aria-label="Back to Home"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12.5 5C8.7 8.4 7.3 9.5 7.1 9.7L7 10C7.3 10.3 8.7 11.6 12.5 15" stroke="#4A9990" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
+        <div className="flex items-center justify-between gap-4 mb-3">
+
 
           {/* Role Switcher Pill Tabs */}
           <div className="flex items-center bg-gray-100/80 p-1 rounded-full text-xs font-semibold">
@@ -144,14 +136,14 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveRole("college")}
+              onClick={() => setActiveRole("admin")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
-                activeRole === "college"
+                activeRole === "admin"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              College / Admin
+              Admin
             </button>
           </div>
         </div>
