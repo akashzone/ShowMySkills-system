@@ -3,9 +3,7 @@ import { Signup } from '@/components/Signup';
 import { notFound } from 'next/navigation';
 
 export function generateStaticParams() {
-  return Object.keys(signupConfig).map((role) => ({
-    role,
-  }));
+  return Object.keys(signupConfig).map((role) => ({ role }));
 }
 
 export default async function Page({ params }) {

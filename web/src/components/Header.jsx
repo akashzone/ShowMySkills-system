@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Terminal, Award, LayoutDashboard, LogIn, ArrowRight } from "lucide-react";
+import { Sparkles, Terminal, Briefcase, LogIn, ArrowRight } from "lucide-react";
 
 export default function Header() {
   return (
@@ -35,11 +35,11 @@ export default function Header() {
 
       <div className="flex items-center space-x-3 sm:space-x-4">
         <Link
-          href="/dashboard"
+          href="/internships"
           className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-900 border border-transparent hover:border-slate-800"
         >
-          <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-          Dashboard
+          <Briefcase className="w-4 h-4 text-[#4B9C93]" />
+          Internships
         </Link>
         <Link
           href="/login"

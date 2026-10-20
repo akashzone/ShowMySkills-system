@@ -45,7 +45,7 @@ export default function Footer() {
             <li><Link href="#explore" className="hover:text-white transition-colors">Skill Directory</Link></li>
             <li><Link href="#how-it-works" className="hover:text-white transition-colors">Skill Benchmarks</Link></li>
             <li><Link href="#showcase" className="hover:text-white transition-colors">Developer Profile Cards</Link></li>
-            <li><Link href="/dashboard" className="hover:text-white transition-colors">Candidate Dashboard</Link></li>
+            <li><Link href="/internships" className="hover:text-white transition-colors">Internship Opportunities</Link></li>
           </ul>
         </div>
 
@@ -62,7 +62,7 @@ export default function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wider">Verification Guarantee</h4>
           <p className="text-xs text-slate-400 mb-3 leading-relaxed">
-            All skill badges are backed by containerized test execution and cryptographic proof hashes.
+            All skill assessments are backed by containerized test execution and cryptographic proof hashes.
           </p>
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
             <ShieldCheck className="w-4 h-4" />
