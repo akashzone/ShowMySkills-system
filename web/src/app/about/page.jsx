@@ -102,7 +102,7 @@ export default function AboutPage() {
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-[#4B9C93]/20 to-[#00BBA7]/20 rounded-3xl blur-md group-hover:blur-lg transition-all" />
               <img
-                src="https://api.builder.io/api/v1/image/assets/TEMP/ca5f46777f483f7d53ef533babdfe0325ebf5cd1?width=883"
+                src="/About.png"
                 alt="Innovation and skill discovery"
                 className="relative w-full max-w-[440px] h-auto object-cover rounded-2xl shadow-md border border-slate-100"
               />
@@ -343,7 +343,7 @@ export default function AboutPage() {
               <div className="flex flex-col items-start">
                 <div className="w-24 h-24 rounded-2xl bg-black flex items-center justify-center p-3 shadow-md mb-6">
                   <img
-                    src="https://api.builder.io/api/v1/image/assets/TEMP/a969de73f394f46f1faa48214a8d9441a7d8a2c9?width=230"
+                    src="/XyphXlogo.png"
                     alt="XyphX Logo"
                     className="w-20 h-20 object-contain"
                   />

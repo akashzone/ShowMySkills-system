@@ -13,7 +13,7 @@ const signupRoleConfigs = {
     emailLabel: "Email Address",
     emailPlaceholder: "you@university.edu",
     hasWebsite: false,
-    illustration: "https://api.builder.io/api/v1/image/assets/TEMP/403db9a2ab8efcb3eae9c3728d2833dbdbd7cc23?width=1262",
+    illustration: "/Signup/Student.png",
     dashboardRoute: "/student/internships",
   },
   company: {
@@ -25,7 +25,7 @@ const signupRoleConfigs = {
     emailPlaceholder: "you@company.com",
     hasWebsite: true,
     websitePlaceholder: "e.g. https://xphycompany.com",
-    illustration: "https://api.builder.io/api/v1/image/assets/TEMP/5e1a3d0980b76c983fb3532bdac6f922c1e2f490?width=948",
+    illustration: "/Signup/Company.png",
     dashboardRoute: "/company/dashboard",
   },
   admin: {
@@ -36,7 +36,7 @@ const signupRoleConfigs = {
     emailLabel: "Admin Email Address",
     emailPlaceholder: "admin@showmyskills.com",
     hasWebsite: false,
-    illustration: "https://api.builder.io/api/v1/image/assets/TEMP/ae669453a765be2e3a38574ba6d9725d33b8cb3d?width=1042",
+    illustration: "/Signup/Admin.png",
     dashboardRoute: "/admin/dashboard",
   },
 };
@@ -107,7 +107,7 @@ function SignupFormContent() {
           <img
             src={config.illustration}
             alt={`${activeRole} illustration`}
-            className="w-full max-h-[290px] object-contain drop-shadow-md relative z-10"
+            className="w-full max-h-[350px] object-contain drop-shadow-md relative z-10"
           />
           <div className="w-[85%] h-3 bg-black/15 rounded-full blur-[6px] mt-[-8px] z-0" />
         </div>
