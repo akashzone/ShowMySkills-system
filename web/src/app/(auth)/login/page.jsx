@@ -12,7 +12,7 @@ const roleConfigs = {
     namePlaceholder: "e.g. Asma Naureen",
     emailLabel: "Email Address",
     emailPlaceholder: "you@university.edu",
-    illustration: "https://api.builder.io/api/v1/image/assets/TEMP/a3a7853a2cc6a5bd5072628fd38b959d0f272e5a?width=1066",
+    illustration: "/SignIn/StudentLogin.png",
     dashboardRoute: "/student/internships",
   },
   company: {
@@ -22,7 +22,7 @@ const roleConfigs = {
     namePlaceholder: "e.g. xphy company",
     emailLabel: "Office Email Address",
     emailPlaceholder: "you@company.com",
-    illustration: "https://api.builder.io/api/v1/image/assets/TEMP/0a67d99783949b6ccf1bb5793dd05c0cb28f8899?width=964",
+    illustration: "/SignIn/CompanyLogin.png",
     dashboardRoute: "/company/dashboard",
   },
   admin: {
@@ -32,7 +32,7 @@ const roleConfigs = {
     namePlaceholder: "e.g. System Administrator",
     emailLabel: "Admin Email Address",
     emailPlaceholder: "admin@showmyskills.com",
-    illustration: "https://api.builder.io/api/v1/image/assets/TEMP/e1b6e7e45b78e909b5d732ae1618fa90b05ff421?width=940",
+    illustration: "/SignIn/AdminLogin.png",
     dashboardRoute: "/admin/dashboard",
   },
 };
