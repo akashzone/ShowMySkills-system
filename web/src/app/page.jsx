@@ -163,7 +163,7 @@ export default function LandingPage() {
         {/* Bottom Left Illustration - Coder */}
         <div className="absolute bottom-0 left-1 sm:left-4 md:left-6 lg:left-8 z-10 pointer-events-none select-none">
           <img
-            src="/coder.png"
+            src="/LandingPage/coder.png"
             alt="Developer coding at desk"
             className="w-64 sm:w-60 md:w-72 lg:w-80 object-contain drop-shadow-xs"
           />
@@ -172,7 +172,7 @@ export default function LandingPage() {
         {/* Bottom Right Illustration - Ideaman */}
         <div className="absolute -bottom-9 sm:-bottom-10 md:-bottom-11 lg:-bottom-12 xl:-bottom-13 right-1 sm:right-4 md:right-6 lg:right-8 z-10 pointer-events-none select-none">
           <img
-            src="/ideaman.png"
+            src="/LandingPage/ideaman.png"
             alt="Creative idea generator"
             className="h-40 sm:h-74 md:h-84 lg:h-[390px] xl:h-[420px] max-h-[50vh] w-auto object-contain drop-shadow-xs"
           />
