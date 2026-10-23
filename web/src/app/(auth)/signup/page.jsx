@@ -103,15 +103,16 @@ function SignupFormContent() {
         </div>
 
         {/* Illustration */}
-        <div className="relative w-full max-w-[420px] mx-auto mt-auto pt-2 flex flex-col items-center">
+        <div className={`relative w-full max-w-[420px] 2xl:max-w-[840px] mx-auto lg:ml-0 lg:mr-auto mt-4 lg:mt-2 mb-auto pt-2 flex flex-col items-center ${activeRole === "admin" ? "lg:-translate-x-[102px]" : activeRole === "company" ? "lg:-translate-x-[178px] lg:translate-y-[210px]" : "lg:-translate-x-[178px] lg:translate-y-[186px]"}`}>
           <img
             src={config.illustration}
             alt={`${activeRole} illustration`}
-            className="w-full max-h-[350px] object-contain drop-shadow-md relative z-10"
+            className="w-full max-h-[380px] object-contain drop-shadow-md relative z-10 scale-[1.5] origin-top"
           />
           <div className="w-[85%] h-3 bg-black/15 rounded-full blur-[6px] mt-[-8px] z-0" />
-        </div>
-      </div>
+        </div>  {/* closes the illustration wrapper opened above */}
+      </div>    {/* closes the left column opened before the logo */}
+
 
       {/* ──── Right Side: Floating White Signup Card ──── */}
       <div className="w-full lg:w-[620px] rounded-[28px] sm:rounded-[36px] bg-white shadow-[16px_20px_50px_rgba(0,0,0,0.18)] p-6 sm:p-8 lg:p-10 relative flex flex-col justify-between z-20">
