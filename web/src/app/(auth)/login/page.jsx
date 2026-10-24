@@ -9,7 +9,7 @@ const roleConfigs = {
     title: "Student  Log In",
     tagline: "Show your skills. Discover your\nopportunities.",
     nameLabel: "Full Name",
-    namePlaceholder: "e.g. Asma Naureen",
+    namePlaceholder: "e.g. Tara Joshi",
     emailLabel: "Email Address",
     emailPlaceholder: "you@university.edu",
     illustration: "/SignIn/StudentLogin.png",
@@ -19,9 +19,9 @@ const roleConfigs = {
     title: "Company Log In",
     tagline: "Find the talent that brings your\nnext big idea to life.",
     nameLabel: "Company Name",
-    namePlaceholder: "e.g. xphy company",
+    namePlaceholder: "e.g. XYZ Company",
     emailLabel: "Office Email Address",
-    emailPlaceholder: "you@company.com",
+    emailPlaceholder: "hello@xyzcompany.com",
     illustration: "/SignIn/CompanyLogin.png",
     dashboardRoute: "/company/dashboard",
   },
@@ -29,7 +29,7 @@ const roleConfigs = {
     title: "Admin Log In",
     tagline: "Manage and monitor platform\noutcomes with showmyskills",
     nameLabel: "Admin Name",
-    namePlaceholder: "e.g. System Administrator",
+    namePlaceholder: "e.g. Jordan Hayes",
     emailLabel: "Admin Email Address",
     emailPlaceholder: "admin@showmyskills.com",
     illustration: "/SignIn/AdminLogin.png",
@@ -252,34 +252,39 @@ function LoginFormContent() {
           </div>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[#D1D5DC]" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-3 text-[#6A7282] font-normal">
-              Or continue with
-            </span>
-          </div>
-        </div>
+        {/* Google SSO Button — Enabled for Student and Company, removed for Admin */}
+        {activeRole !== "admin" && (
+          <>
+            {/* Divider */}
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#D1D5DC]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-[#6A7282] font-normal">
+                  Or continue with
+                </span>
+              </div>
+            </div>
 
-        {/* Google SSO Button */}
-        <button
-          type="button"
-          onClick={() => router.push(config.dashboardRoute)}
-          className="w-full h-[48px] rounded-xl border border-[#D1D5DC] bg-white hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9.99993 3.95833C11.4749 3.95833 12.6499 4.47083 13.4541 4.9L16.0291 2.325C14.5333 0.8875 12.4208 0 9.99993 0C6.09993 0 2.6666 2.35 1.0166 5.77917L4.18743 8.24583C5.0541 5.47083 7.3166 3.95833 9.99993 3.95833Z" fill="#4285F4" />
-            <path d="M19.2083 10.2084C19.2083 9.52508 19.1458 8.86675 19.025 8.22925H10V11.9792H15.1833C14.9583 13.1334 14.275 14.1126 13.2458 14.7709L16.2583 17.1126C18.325 15.4709 19.2083 13.0542 19.2083 10.2084Z" fill="#34A853" />
-            <path d="M4.1875 11.9958C3.71667 10.5917 3.71667 8.99168 4.1875 7.58752L1.01667 5.12085C0.358333 7.02918 0 8.57085 0 10.2083C0 11.8458 0.358333 13.3875 1.01667 14.8792L4.1875 12.4125V11.9958Z" fill="#FBBC05" />
-            <path d="M9.99993 19.9999C12.6999 19.9999 14.9708 19.1124 16.6374 17.5499L13.6249 15.2082C12.7874 15.7707 11.7124 16.1041 9.99993 16.1041C7.3166 16.1041 5.0541 14.5916 4.18743 12.6499L1.0166 15.1166C2.6666 17.6499 6.09993 19.9999 9.99993 19.9999Z" fill="#EA4335" />
-          </svg>
-          <span className="text-sm font-medium text-[#005F5A]">
-            Sign in with Google
-          </span>
-        </button>
+            {/* Google SSO Button */}
+            <button
+              type="button"
+              onClick={() => router.push(config.dashboardRoute)}
+              className="w-full h-[48px] rounded-xl border border-[#D1D5DC] bg-white hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.99993 3.95833C11.4749 3.95833 12.6499 4.47083 13.4541 4.9L16.0291 2.325C14.5333 0.8875 12.4208 0 9.99993 0C6.09993 0 2.6666 2.35 1.0166 5.77917L4.18743 8.24583C5.0541 5.47083 7.3166 3.95833 9.99993 3.95833Z" fill="#4285F4" />
+                <path d="M19.2083 10.2084C19.2083 9.52508 19.1458 8.86675 19.025 8.22925H10V11.9792H15.1833C14.9583 13.1334 14.275 14.1126 13.2458 14.7709L16.2583 17.1126C18.325 15.4709 19.2083 13.0542 19.2083 10.2084Z" fill="#34A853" />
+                <path d="M4.1875 11.9958C3.71667 10.5917 3.71667 8.99168 4.1875 7.58752L1.01667 5.12085C0.358333 7.02918 0 8.57085 0 10.2083C0 11.8458 0.358333 13.3875 1.01667 14.8792L4.1875 12.4125V11.9958Z" fill="#FBBC05" />
+                <path d="M9.99993 19.9999C12.6999 19.9999 14.9708 19.1124 16.6374 17.5499L13.6249 15.2082C12.7874 15.7707 11.7124 16.1041 9.99993 16.1041C7.3166 16.1041 5.0541 14.5916 4.18743 12.6499L1.0166 15.1166C2.6666 17.6499 6.09993 19.9999 9.99993 19.9999Z" fill="#EA4335" />
+              </svg>
+              <span className="text-sm font-medium text-[#005F5A]">
+                Sign in with Google
+              </span>
+            </button>
+          </>
+        )}
 
         {/* Bottom Toggle Link to Signup */}
         <div className="text-center pt-4">
