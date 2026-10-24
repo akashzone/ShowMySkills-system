@@ -28,19 +28,33 @@ const userSchema = new mongoose.Schema({
 
   college: {
     type: String,
-    required: true,
+    required: function () {
+      return this.role === 'student';
+    },
     trim: true
   },
 
   graduationYear: {
     type: Number,
-    required: true
+    required: function () {
+      return this.role === 'student';
+    }
   },
 
   collegeId: {
     type: String,
-    required: true,
+    required: function () {
+      return this.role === 'student';
+    },
     trim: true
+  },
+  profileIcon: {
+    type: String,
+    default: null
+  },
+  dob: {
+    type: Date,
+    default: null
   },
   collegeIdDocument: {
   type: String,

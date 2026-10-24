@@ -115,14 +115,70 @@ const pendingVerifications = [
   { id: 4, name: "xphy Technologies", college: "Bengaluru", skill: "Employer Hiring License", score: "Verified", type: "Company Verification", date: "Oct 18" },
 ];
 
+const initialAdminApplications = [
+  {
+    id: "app-101",
+    name: "Alex Morgan",
+    email: "alex.morgan@domain.com",
+    phone: "+1 (555) 345-6789",
+    dob: "1997-04-12",
+    recommendedBy: "S Sidharth (Core Admin)",
+    photoUrl: "/Signup/Admin.png",
+    photoConsent: true,
+    notes: "Experienced systems engineer applying to manage core platform operations.",
+    emailVerified: true,
+    officialOtpVerified: true,
+    status: "pending",
+    date: "Oct 24",
+  },
+];
+
 export default function AdminDashboardPage() {
   const [verifications, setVerifications] = useState(pendingVerifications);
+  const [adminApplications, setAdminApplications] = useState(initialAdminApplications);
   const [students, setStudents] = useState(initialStudents);
   const [selectedTagFilter, setSelectedTagFilter] = useState("all");
   const [studentSearch, setStudentSearch] = useState("");
   const [tagToast, setTagToast] = useState("");
+  const [adminActionToast, setAdminActionToast] = useState("");
 
   const tagOptions = Object.keys(STUDENT_ROLE_TAGS);
+
+  const handleApproveAdminApp = async (appId) => {
+    const targetApp = adminApplications.find((a) => a.id === appId);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      await fetch(
+        `${baseUrl.replace(/\/$/, "")}/admin-applications/${appId}/approve`,
+        { method: "POST" }
+      ).catch(() => {});
+    } catch {}
+
+    setAdminApplications((prev) => prev.filter((a) => a.id !== appId));
+    setAdminActionToast(
+      `Approved ${targetApp?.name || "Applicant"}. Admin access granted, and their photo is now activated as their public profile icon.`
+    );
+    setTimeout(() => setAdminActionToast(""), 5000);
+  };
+
+  const handleRejectAdminApp = async (appId) => {
+    const targetApp = adminApplications.find((a) => a.id === appId);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      await fetch(
+        `${baseUrl.replace(/\/$/, "")}/admin-applications/${appId}/reject`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: "Declined by core admin review" }),
+        }
+      ).catch(() => {});
+    } catch {}
+
+    setAdminApplications((prev) => prev.filter((a) => a.id !== appId));
+    setAdminActionToast(`Declined application for ${targetApp?.name || "Applicant"}.`);
+    setTimeout(() => setAdminActionToast(""), 4000);
+  };
 
   const handleApprove = (id) => {
     setVerifications((prev) => prev.filter((item) => item.id !== id));
@@ -165,6 +221,22 @@ export default function AdminDashboardPage() {
 
         <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full">
     
+          {/* Toast / Notification Banners */}
+          {adminActionToast && (
+            <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-semibold flex items-center justify-between shadow-xs">
+              <span className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+                {adminActionToast}
+              </span>
+              <button
+                onClick={() => setAdminActionToast("")}
+                className="text-emerald-700 hover:text-emerald-900 text-xs font-bold"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {kpis.map(({ label, value, status, icon: Icon, color, bg }) => (
@@ -186,6 +258,106 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* ──── Admin Access Requests Review (Core Admin Authorization) ──── */}
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden mb-8">
+            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#009689]" />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Admin Access Applications (Core Admin Review)
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Applicants request admin access with fixed official destination verification and consent. Accounts are only created after approval.
+                </p>
+              </div>
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200 self-start sm:self-auto">
+                {adminApplications.length} Pending Application{adminApplications.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            {adminApplications.length === 0 ? (
+              <div className="p-8 text-center text-xs text-gray-400">
+                No pending admin access applications to review.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-[#F9FAFB] text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                    <tr>
+                      <th className="py-3.5 px-6">Applicant</th>
+                      <th className="py-3.5 px-6">DOB & Contact</th>
+                      <th className="py-3.5 px-6">Recommender</th>
+                      <th className="py-3.5 px-6">Photo Consent</th>
+                      <th className="py-3.5 px-6">Applicant Note</th>
+                      <th className="py-3.5 px-6 text-right">Core Admin Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {adminApplications.map((app) => (
+                      <tr key={app.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={app.photoUrl}
+                              alt={app.name}
+                              className="w-10 h-10 rounded-full object-cover border border-[#009689]"
+                            />
+                            <div>
+                              <div className="font-bold text-gray-900 text-sm">
+                                {app.name}
+                              </div>
+                              <div className="text-xs text-gray-500 font-mono">
+                                {app.email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-xs text-gray-600">
+                          <div>DOB: <span className="font-semibold text-gray-800">{app.dob}</span></div>
+                          <div className="text-gray-500">{app.phone}</div>
+                        </td>
+                        <td className="py-4 px-6 text-xs font-medium text-gray-800">
+                          {app.recommendedBy}
+                        </td>
+                        <td className="py-4 px-6">
+                          {app.photoConsent ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                              <CheckCircle className="w-3 h-3 text-emerald-600" />
+                              Public Icon Consent Given
+                            </span>
+                          ) : (
+                            <span className="text-xs text-red-600 font-bold">
+                              No Consent
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-xs text-gray-500 max-w-[200px] truncate" title={app.notes}>
+                          {app.notes || <span className="italic text-gray-400">No notes provided</span>}
+                        </td>
+                        <td className="py-4 px-6 text-right space-x-2 whitespace-nowrap">
+                          <button
+                            onClick={() => handleApproveAdminApp(app.id)}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#009689] text-white hover:bg-[#007e73] transition-colors cursor-pointer shadow-2xs"
+                          >
+                            Approve Admin
+                          </button>
+                          <button
+                            onClick={() => handleRejectAdminApp(app.id)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Verification & Moderation Queue */}
