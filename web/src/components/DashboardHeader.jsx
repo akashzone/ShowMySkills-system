@@ -122,7 +122,7 @@ export default function DashboardHeader({
   return (
     <header
       id="dashboard-header"
-      className="sticky top-0 z-30 px-4 sm:px-8 py-3.5 sm:py-4 flex items-center justify-between border-b border-gray-100 bg-[#F7F9F9]/85 backdrop-blur-md"
+      className="sticky top-0 z-30 px-4 sm:px-8 py-2.5 sm:py-3 flex items-center justify-between border-b border-gray-100 bg-[#F7F9F9]/85 backdrop-blur-md shrink-0"
     >
       {/* ──── Left: Hamburger Button + Greeting ──── */}
       <div className="flex items-center gap-2.5 sm:gap-3">
@@ -137,7 +137,7 @@ export default function DashboardHeader({
         </button>
 
         <div>
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
             {displayTitle}
           </h1>
           {displaySubtitle && (
