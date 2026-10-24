@@ -294,6 +294,21 @@ export const adminApplicationService = {
       throw err;
     }
 
+    // 1b. Validate date of birth is not in the future
+    const parsedDob = new Date(dob);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    if (Number.isNaN(parsedDob.getTime())) {
+      const err = new Error('Invalid date of birth format');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (parsedDob > endOfToday) {
+      const err = new Error('Date of birth cannot be in the future');
+      err.statusCode = 400;
+      throw err;
+    }
+
     // 2. Validate photo upload and consent
     if (!photoFile) {
       const err = new Error(

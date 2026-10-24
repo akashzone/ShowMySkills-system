@@ -9,7 +9,7 @@ const signupRoleConfigs = {
     title: "Student Sign up",
     tagline: "Create your account and start your\nskills with showmyskills",
     nameLabel: "Full Name",
-    namePlaceholder: "e.g. Asma Naureen",
+    namePlaceholder: "e.g. Tara Joshi",
     emailLabel: "Email Address",
     emailPlaceholder: "you@university.edu",
     hasWebsite: false,
@@ -20,11 +20,11 @@ const signupRoleConfigs = {
     title: "Company Sign up",
     tagline: "Select the candidates as per your\nrequirements with showmyskills",
     nameLabel: "Company Name",
-    namePlaceholder: "e.g. xphy company",
+    namePlaceholder: "e.g. XYZ Company",
     emailLabel: "Office Email Address",
-    emailPlaceholder: "you@company.com",
+    emailPlaceholder: "hello@xyzcompany.com",
     hasWebsite: true,
-    websitePlaceholder: "e.g. https://xphycompany.com",
+    websitePlaceholder: "e.g. https://xyzcompany.com",
     illustration: "/Signup/Company.png",
     dashboardRoute: "/company/dashboard",
   },
@@ -32,7 +32,7 @@ const signupRoleConfigs = {
     title: "Admin Access Application",
     tagline: "Apply for administrator privileges.\nApplications are reviewed and granted by core admins.",
     nameLabel: "Applicant Full Name",
-    namePlaceholder: "e.g. System Administrator",
+    namePlaceholder: "e.g. Jordan Hayes",
     emailLabel: "Applicant Email Address",
     emailPlaceholder: "admin.applicant@domain.com",
     hasWebsite: false,
@@ -147,6 +147,247 @@ function OtpBoxes({ value = "", onChange, disabled = false, idPrefix = "otp" }) 
   );
 }
 
+function getLocalDateString(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function DateOfBirthPicker({ value, onChange }) {
+  const containerRef = useRef(null);
+  const today = new Date();
+  const todayString = getLocalDateString(today);
+  const currentYear = today.getFullYear();
+  const initialViewDate = value
+    ? new Date(`${value}T12:00:00`)
+    : new Date(currentYear - 18, today.getMonth(), today.getDate());
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(initialViewDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(initialViewDate.getMonth());
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const calendarCells = Array.from(
+    { length: firstWeekday + daysInMonth },
+    (_, index) => (index < firstWeekday ? null : index - firstWeekday + 1)
+  );
+  const selectedDate = value ? new Date(`${value}T12:00:00`) : null;
+  const displayValue = selectedDate && !Number.isNaN(selectedDate.getTime())
+    ? new Intl.DateTimeFormat("en-IN", {
+        day: "numeric", month: "long", year: "numeric",
+      }).format(selectedDate)
+    : "Select your date of birth";
+
+  // Sync view year/month when value changes externally
+  useEffect(() => {
+    if (!value) return;
+    const parsed = new Date(`${value}T12:00:00`);
+    if (!Number.isNaN(parsed.getTime())) {
+      setViewYear(parsed.getFullYear());
+      setViewMonth(parsed.getMonth());
+    }
+  }, [value]);
+
+  // Handle click outside and Escape key to close picker
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        const trigger = document.getElementById("admin-dob-button");
+        trigger?.focus();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const changeMonth = (offset) => {
+    const next = new Date(viewYear, viewMonth + offset, 1);
+    if (offset > 0 && isFutureMonth(next.getFullYear(), next.getMonth())) return;
+    setViewYear(next.getFullYear());
+    setViewMonth(next.getMonth());
+  };
+
+  const isFutureMonth = (year, month) =>
+    year > today.getFullYear() ||
+    (year === today.getFullYear() && month > today.getMonth());
+
+  // Handle keyboard arrow keys inside calendar day grid
+  const handleDayKeyDown = (day, event) => {
+    let targetDay = null;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      targetDay = day - 1;
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      targetDay = day + 1;
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      targetDay = day - 7;
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      targetDay = day + 7;
+    }
+
+    if (targetDay !== null && targetDay >= 1 && targetDay <= daysInMonth) {
+      const targetDateString = getLocalDateString(new Date(viewYear, viewMonth, targetDay));
+      if (targetDateString <= todayString) {
+        const el = document.getElementById(`dob-day-${targetDay}`);
+        el?.focus();
+      }
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        id="admin-dob-button"
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-controls="dob-calendar-popover"
+        aria-required="true"
+        onClick={() => setIsOpen((open) => !open)}
+        className="w-full h-[40px] px-3.5 flex items-center justify-between rounded-lg border border-[#DADADA] bg-[#F9FAFB] text-left text-xs sm:text-sm text-[#1F2937] shadow-2xs hover:border-[#4B9C93] focus:outline-none focus:border-[#4B9C93] focus:bg-white focus:ring-2 focus:ring-[#4B9C93]/20 transition"
+      >
+        <span className={value ? "font-medium text-gray-900" : "text-[#4A5565]/70"}>
+          {displayValue}
+        </span>
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4 text-[#4B9C93] shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          id="dob-calendar-popover"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Date of birth picker"
+          className="absolute left-0 top-full z-50 mt-1.5 w-[min(20rem,calc(100vw-2.5rem))] rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)]"
+        >
+          {/* Quick Month & Year Selectors */}
+          <div className="mb-3 flex items-center gap-2">
+            <select
+              id="dob-month-select"
+              aria-label="Month"
+              value={viewMonth}
+              onChange={(event) => setViewMonth(Number(event.target.value))}
+              className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs sm:text-sm font-semibold text-slate-800 focus:border-[#4B9C93] focus:outline-none cursor-pointer"
+            >
+              {monthNames.map((month, index) => (
+                <option key={month} value={index} disabled={isFutureMonth(viewYear, index)}>
+                  {month}
+                </option>
+              ))}
+            </select>
+            <select
+              id="dob-year-select"
+              aria-label="Year"
+              value={viewYear}
+              onChange={(event) => {
+                const year = Number(event.target.value);
+                setViewYear(year);
+                if (isFutureMonth(year, viewMonth)) setViewMonth(today.getMonth());
+              }}
+              className="h-9 w-24 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs sm:text-sm font-semibold text-slate-800 focus:border-[#4B9C93] focus:outline-none cursor-pointer"
+            >
+              {Array.from({ length: currentYear - 1920 + 1 }, (_, index) => currentYear - index).map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Weekday Labels */}
+          <div className="mb-2 grid grid-cols-7 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+              <span key={day} className="py-0.5">{day}</span>
+            ))}
+          </div>
+
+          {/* Day Grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {calendarCells.map((day, index) => {
+              if (!day) return <span key={`empty-${index}`} aria-hidden="true" />;
+              const dateString = getLocalDateString(new Date(viewYear, viewMonth, day));
+              const isFuture = dateString > todayString;
+              const isSelected = dateString === value;
+              const cellDate = new Date(viewYear, viewMonth, day);
+              const formattedAriaLabel = new Intl.DateTimeFormat("en-IN", {
+                day: "numeric", month: "long", year: "numeric",
+              }).format(cellDate);
+
+              return (
+                <button
+                  key={dateString}
+                  id={`dob-day-${day}`}
+                  type="button"
+                  disabled={isFuture}
+                  aria-label={formattedAriaLabel}
+                  aria-pressed={isSelected}
+                  aria-disabled={isFuture}
+                  onKeyDown={(e) => handleDayKeyDown(day, e)}
+                  onClick={() => {
+                    onChange(dateString);
+                    setIsOpen(false);
+                    const trigger = document.getElementById("admin-dob-button");
+                    trigger?.focus();
+                  }}
+                  className={`h-8 sm:h-9 rounded-lg text-xs sm:text-sm transition flex items-center justify-center font-medium ${
+                    isSelected
+                      ? "bg-[#009689] font-bold text-white shadow-xs ring-2 ring-[#009689]/20"
+                      : isFuture
+                        ? "cursor-not-allowed text-slate-300 opacity-30"
+                        : "text-slate-700 hover:bg-[#E8F5F3] hover:text-[#007E73] focus:bg-[#E8F5F3] focus:outline-none focus:ring-1 focus:ring-[#009689]"
+                  }`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Bottom Toolbar: Prev, Notice, Next */}
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5">
+            <button
+              type="button"
+              onClick={() => changeMonth(-1)}
+              disabled={viewYear === 1920 && viewMonth === 0}
+              className="rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+            >
+              ‹ Prev
+            </button>
+            <span className="text-[11px] text-slate-400 font-medium">Future dates locked</span>
+            <button
+              type="button"
+              onClick={() => changeMonth(1)}
+              disabled={isFutureMonth(viewYear, viewMonth + 1)}
+              className="rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+            >
+              Next ›
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SignupFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -219,7 +460,7 @@ function SignupFormContent() {
     ) {
       setAdminName("Jordan Hayes (Sample Preview)");
       setAdminEmail("jordan.preview@showmyskills.dev");
-      setAdminPhone("+1 (555) 234-5678");
+      setAdminPhone("+91 98765 43210");
       setAdminDob("1996-03-22");
       setIsEmailVerified(true);
       setVerificationToken("dev_sample_preview_token");
@@ -233,7 +474,7 @@ function SignupFormContent() {
     if (!isDev) return;
     setAdminName("Jordan Hayes (Sample Preview)");
     setAdminEmail("jordan.preview@showmyskills.dev");
-    setAdminPhone("+1 (555) 234-5678");
+    setAdminPhone("+91 98765 43210");
     setAdminDob("1996-03-22");
     setIsEmailVerified(true);
     setVerificationToken("dev_sample_preview_token");
@@ -372,6 +613,10 @@ function SignupFormContent() {
     }
     if (!adminDob) {
       setApplicantOtpError("Please enter your date of birth.");
+      return;
+    }
+    if (adminDob > getLocalDateString(new Date())) {
+      setApplicantOtpError("Date of birth must not be in the future.");
       return;
     }
     if (!isEmailVerified) {
@@ -781,7 +1026,7 @@ function SignupFormContent() {
                       required
                       value={adminName}
                       onChange={(e) => setAdminName(e.target.value)}
-                      placeholder="e.g. System Administrator"
+                      placeholder="e.g. Jordan Hayes"
                       className="w-full h-[40px] px-3.5 rounded-lg border border-[#DADADA] bg-[#F9FAFB] text-xs sm:text-sm text-[#1F2937] placeholder:text-[#4A5565]/70 focus:outline-none focus:border-[#4B9C93] focus:bg-white"
                     />
                   </div>
@@ -893,23 +1138,17 @@ function SignupFormContent() {
                       required
                       value={adminPhone}
                       onChange={(e) => setAdminPhone(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+91 98765 43210"
                       className="w-full h-[40px] px-3.5 rounded-lg border border-[#DADADA] bg-[#F9FAFB] text-xs sm:text-sm text-[#1F2937] placeholder:text-[#4A5565]/70 focus:outline-none focus:border-[#4B9C93] focus:bg-white"
                     />
                   </div>
 
                   {/* Date of Birth */}
                   <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-[#1F2937]">
+                    <label htmlFor="admin-dob-button" className="block text-xs font-semibold text-[#1F2937]">
                       Date of Birth *
                     </label>
-                    <input
-                      type="date"
-                      required
-                      value={adminDob}
-                      onChange={(e) => setAdminDob(e.target.value)}
-                      className="w-full h-[40px] px-3.5 rounded-lg border border-[#DADADA] bg-[#F9FAFB] text-xs sm:text-sm text-[#1F2937] focus:outline-none focus:border-[#4B9C93] focus:bg-white"
-                    />
+                    <DateOfBirthPicker value={adminDob} onChange={setAdminDob} />
                   </div>
 
                   {/* Notice: Must verify email */}
@@ -1252,7 +1491,7 @@ function SignupFormContent() {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+91 98765 43210"
                     className="w-full bg-transparent pl-2.5 text-xs sm:text-sm text-[#1F2937] placeholder:text-[#4A5565]/80 focus:outline-none"
                   />
                 </div>

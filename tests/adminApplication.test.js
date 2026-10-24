@@ -192,3 +192,38 @@ test('OTP 6-Box component: Digits concatenation and clipboard paste extraction',
   assert.strictEqual(combined, '123456');
   assert.strictEqual(combined.length, 6);
 });
+
+test('Date of Birth Validation: Future dates are strictly rejected', () => {
+  const validateDob = (dob) => {
+    const parsedDob = new Date(dob);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    if (Number.isNaN(parsedDob.getTime())) {
+      throw new Error('Invalid date of birth format');
+    }
+    if (parsedDob > endOfToday) {
+      throw new Error('Date of birth cannot be in the future');
+    }
+    return true;
+  };
+
+  // Valid past date
+  assert.strictEqual(validateDob('1998-05-14'), true);
+  assert.strictEqual(validateDob('2000-01-01'), true);
+
+  // Future date should throw
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 2);
+  const futureDateString = tomorrow.toISOString().slice(0, 10);
+  assert.throws(
+    () => validateDob(futureDateString),
+    /Date of birth cannot be in the future/
+  );
+
+  // Invalid date string should throw
+  assert.throws(
+    () => validateDob('not-a-valid-date'),
+    /Invalid date of birth format/
+  );
+});
+
