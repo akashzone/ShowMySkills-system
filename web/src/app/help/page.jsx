@@ -9,7 +9,6 @@ import {
   Mail,
   ChevronDown,
   Search,
-  Sparkles,
   CheckCircle2,
   Send,
   ExternalLink,
