@@ -6,7 +6,6 @@ import {
   MessageSquare,
   Send,
   Search,
-  Sparkles,
   Paperclip,
   CheckCheck,
   GraduationCap,
