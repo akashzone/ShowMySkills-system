@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   BarChart3,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { adminService } from "@/services/apiClient";
 
 const kpiStats = [
   {
@@ -88,6 +89,56 @@ const conversionFunnel = [
 export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30d");
   const [exportNotice, setExportNotice] = useState(false);
+  const [statsData, setStatsData] = useState(kpiStats);
+
+  useEffect(() => {
+    let isMounted = true;
+    adminService.getOverview(null).then((overview) => {
+      if (isMounted && overview) {
+        setStatsData([
+          {
+            title: "Registered Students",
+            value: (overview.totalStudents || 14820).toLocaleString(),
+            change: "+18.4% from last month",
+            isPositive: true,
+            icon: Users,
+            bg: "bg-[#E6F7F3]",
+            text: "text-[#0D9488]",
+          },
+          {
+            title: "Partner Companies",
+            value: (overview.totalCompanies || 348).toLocaleString(),
+            change: "+24 new this quarter",
+            isPositive: true,
+            icon: Building2,
+            bg: "bg-blue-50",
+            text: "text-blue-600",
+          },
+          {
+            title: "Active Internships",
+            value: (overview.totalInternships || 1260).toLocaleString(),
+            change: "+12.1% active listings",
+            isPositive: true,
+            icon: Briefcase,
+            bg: "bg-purple-50",
+            text: "text-purple-600",
+          },
+          {
+            title: "Applications Placed",
+            value: (overview.totalApplications || 8940).toLocaleString(),
+            change: "76.4% shortlist rate",
+            isPositive: true,
+            icon: CheckCircle2,
+            bg: "bg-emerald-50",
+            text: "text-emerald-600",
+          },
+        ]);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleExport = () => {
     setExportNotice(true);
@@ -149,7 +200,7 @@ export default function AdminAnalyticsPage() {
 
           {/* KPI Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {kpiStats.map((kpi, idx) => {
+            {statsData.map((kpi, idx) => {
               const Icon = kpi.icon;
               return (
                 <div

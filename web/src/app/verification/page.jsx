@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/apiClient';
 
-const verificationItems = [
+const defaultVerificationItems = [
   {
     title: 'Email Verification',
     description: 'Verify your email address using OTP.',
@@ -25,6 +27,29 @@ const verificationItems = [
 
 export default function VerificationPage() {
   const router = useRouter();
+  const [items, setItems] = useState(defaultVerificationItems);
+
+  useEffect(() => {
+    let isMounted = true;
+    authService.getCurrentUser(null).then((user) => {
+      if (isMounted && user) {
+        setItems((prev) =>
+          prev.map((item) => {
+            if (item.title === 'Email Verification') {
+              return { ...item, status: user.isEmailVerified ? 'Completed' : 'Pending' };
+            }
+            if (item.title === 'College ID Verification' && user.verified) {
+              return { ...item, status: 'Completed' };
+            }
+            return item;
+          })
+        );
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4 py-10 md:px-8">
@@ -52,7 +77,7 @@ export default function VerificationPage() {
         </section>
 
         <section className="space-y-4">
-          {verificationItems.map((item) => (
+          {items.map((item) => (
             <article
               key={item.title}
               className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center"

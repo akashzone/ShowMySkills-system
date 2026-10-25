@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Users,
@@ -16,6 +16,7 @@ import {
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
+import { adminService } from "@/services/apiClient";
 
 const initialStudents = [
   {
@@ -122,6 +123,18 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMessage, setToastMessage] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+    adminService.getUsers({ role: "student" }, initialStudents).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setStudents(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const tagOptions = Object.keys(STUDENT_ROLE_TAGS);
 
   const handleTagChange = (studentId, newTag) => {
@@ -133,6 +146,7 @@ export default function AdminUsersPage() {
         return s;
       })
     );
+    adminService.updateRoleTag(studentId, newTag);
     const target = students.find((s) => s.id === studentId);
     setToastMessage(`Assigned '${newTag}' system tag to ${target?.name || "Student"}`);
     setTimeout(() => setToastMessage(""), 3500);

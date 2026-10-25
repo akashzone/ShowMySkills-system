@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   SlidersHorizontal,
@@ -14,7 +14,6 @@ import {
   X,
   ExternalLink,
   Building2,
-  Sparkles,
   CheckCircle2,
   Share2,
   Globe,
@@ -24,6 +23,7 @@ import {
 
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { launchpadService } from "@/services/apiClient";
 
 // Top Verified Tech Internships data with real application links & stipend details
 const initialInternships = [
@@ -253,6 +253,7 @@ function CompanyLogo({ logoType, companyName }) {
 }
 
 export default function StudentLaunchpadPage() {
+  const [internships, setInternships] = useState(initialInternships);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRoleType, setSelectedRoleType] = useState("all");
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -260,6 +261,18 @@ export default function StudentLaunchpadPage() {
   const [selectedInternship, setSelectedInternship] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    let isMounted = true;
+    launchpadService.list({}, initialInternships).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setInternships(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -282,7 +295,7 @@ export default function StudentLaunchpadPage() {
 
   // Filter internships based on search query & filters
   const filteredInternships = useMemo(() => {
-    return initialInternships.filter((item) => {
+    return internships.filter((item) => {
       if (selectedRoleType !== "all" && !item.position.toLowerCase().includes(selectedRoleType.toLowerCase())) {
         return false;
       }
@@ -297,7 +310,7 @@ export default function StudentLaunchpadPage() {
         item.allSkills.some((s) => s.toLowerCase().includes(q))
       );
     });
-  }, [searchQuery, selectedRoleType]);
+  }, [internships, searchQuery, selectedRoleType]);
 
   return (
     <div className="min-h-screen bg-[#F7F9F9] flex">
@@ -565,6 +578,7 @@ export default function StudentLaunchpadPage() {
                         href={item.applyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => launchpadService.recordClick(item.id)}
                         className="px-4 py-2 rounded-lg border border-[#E2E8F0] bg-[#C5F1EC] hover:bg-[#b0eae3] text-xs font-semibold text-[#475569] hover:text-[#0F172A] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs shrink-0"
                       >
                         <span>Apply Now</span>

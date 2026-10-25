@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Briefcase,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { internshipService, adminService, apiRequest } from "@/services/apiClient";
 
 const initialInternships = [
   {
@@ -120,6 +121,18 @@ export default function AdminInternshipsPage() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+    internshipService.list({}, initialInternships).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setInternships(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const triggerToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
@@ -149,6 +162,7 @@ export default function AdminInternshipsPage() {
         item.id === id ? { ...item, status: "active", isVerified: true } : item
       )
     );
+    adminService.moderateInternship(id, { status: "active", isVerified: true });
     triggerToast("Internship approved and marked active!");
     if (selectedJob?.id === id) {
       setSelectedJob((prev) => ({ ...prev, status: "active", isVerified: true }));
@@ -161,6 +175,7 @@ export default function AdminInternshipsPage() {
         item.id === id ? { ...item, status: "suspended", isFeatured: false } : item
       )
     );
+    adminService.moderateInternship(id, { status: "suspended", isFeatured: false });
     triggerToast("Internship posting suspended.");
     if (selectedJob?.id === id) {
       setSelectedJob((prev) => ({ ...prev, status: "suspended", isFeatured: false }));
@@ -172,6 +187,7 @@ export default function AdminInternshipsPage() {
       prev.map((item) => {
         if (item.id === id) {
           const next = !item.isFeatured;
+          adminService.moderateInternship(id, { isFeatured: next });
           triggerToast(next ? "Added to Launchpad Featured!" : "Removed from Featured.");
           return { ...item, isFeatured: next };
         }
@@ -180,10 +196,13 @@ export default function AdminInternshipsPage() {
     );
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("Are you sure you want to permanently delete this posting?")) {
       setInternships((prev) => prev.filter((item) => item.id !== id));
       if (selectedJob?.id === id) setSelectedJob(null);
+      try {
+        await apiRequest(`/admin/internships/${id}`, "DELETE");
+      } catch {}
       triggerToast("Internship deleted successfully.");
     }
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   MessageSquare,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { chatService } from "@/services/apiClient";
 
 const conversations = [
   {
@@ -46,26 +47,48 @@ const conversations = [
 ];
 
 export default function CompanyChatsPage() {
+  const [convList, setConvList] = useState(conversations);
   const [activeConv, setActiveConv] = useState(conversations[0]);
   const [inputText, setInputText] = useState("");
   const [chatMessages, setChatMessages] = useState(conversations[0].messages);
+
+  useEffect(() => {
+    let isMounted = true;
+    chatService.getConversations(conversations).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setConvList(res);
+        if (!activeConv) {
+          setActiveConv(res[0]);
+          setChatMessages(res[0].messages || []);
+        }
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
+    const text = inputText.trim();
     const newMsg = {
       sender: "company",
-      text: inputText.trim(),
+      text,
       time: "Just now",
     };
     setChatMessages((prev) => [...prev, newMsg]);
     setInputText("");
+
+    if (activeConv) {
+      chatService.sendMessage(text, activeConv.id, activeConv.conversationId || activeConv.id);
+    }
   };
 
   const handleSelectConversation = (conv) => {
     setActiveConv(conv);
-    setChatMessages(conv.messages);
+    setChatMessages(conv.messages || []);
   };
 
   return (
@@ -98,7 +121,7 @@ export default function CompanyChatsPage() {
               </div>
 
               <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-                {conversations.map((conv) => {
+                {convList.map((conv) => {
                   const active = activeConv.id === conv.id;
                   return (
                     <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   CheckCircle,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { adminService } from "@/services/apiClient";
 
 const initialVerifications = [
   {
@@ -103,6 +104,18 @@ export default function AdminVerificationsPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [toastMessage, setToastMessage] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+    adminService.getVerifications({}, initialVerifications).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setVerifications(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const triggerToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
@@ -126,6 +139,7 @@ export default function AdminVerificationsPage() {
         item.id === id ? { ...item, status: "approved" } : item
       )
     );
+    adminService.reviewVerification(id, "verified");
     triggerToast("Verification approved! User granted verified status.");
     if (selectedVer?.id === id) {
       setSelectedVer((prev) => ({ ...prev, status: "approved" }));
@@ -133,17 +147,19 @@ export default function AdminVerificationsPage() {
   };
 
   const handleReject = (id) => {
+    const note = rejectionReason || "Document could not be validated against records.";
     setVerifications((prev) =>
       prev.map((item) =>
         item.id === id
           ? {
               ...item,
               status: "rejected",
-              notes: rejectionReason || "Document could not be validated against records.",
+              notes: note,
             }
           : item
       )
     );
+    adminService.reviewVerification(id, "rejected", note);
     setRejectionReason("");
     triggerToast("Verification request rejected with feedback note.");
     if (selectedVer?.id === id) {

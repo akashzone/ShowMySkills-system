@@ -22,6 +22,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
+import { chatService } from "@/services/apiClient";
 
 // Initial mock conversations with campus student talent
 const defaultConversations = [
@@ -145,6 +146,19 @@ function ChatsContent() {
   const [mobileViewChat, setMobileViewChat] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Fetch conversations from API with fallback to defaultConversations
+  useEffect(() => {
+    let isMounted = true;
+    chatService.getConversations(defaultConversations).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setConversations(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Auto-select or create candidate thread if URL contains user & name params
   useEffect(() => {
     if (paramUserId) {
@@ -214,6 +228,9 @@ function ChatsContent() {
         return c;
       })
     );
+
+    // Call chatService in background; fails gracefully if backend is offline
+    chatService.sendMessage(text, activeChat.id, activeChat.conversationId || activeChat.id);
 
     setInputText("");
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Briefcase,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { applicationService } from "@/services/apiClient";
 
 const stats = [
   { label: "Active Postings", value: "6", change: "+2 this month", icon: Briefcase, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
@@ -77,6 +78,35 @@ const mockRecentApplicants = [
 ];
 
 export default function CompanyDashboardPage() {
+  const [recentApplicants, setRecentApplicants] = useState(mockRecentApplicants);
+
+  useEffect(() => {
+    let isMounted = true;
+    applicationService.getCompanyApplications({}, mockRecentApplicants).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        const mapped = res.map((app) => ({
+          id: app._id || app.id,
+          name: app.candidate?.name || app.name || "Student Candidate",
+          role: app.internship?.title || app.role || "Internship Role",
+          college: app.candidate?.college || app.college || "University Partner",
+          score: app.score || 90,
+          status: app.status ? (app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()) : "Applied",
+          statusColor: app.status === "Shortlisted" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                       app.status === "Interviewing" ? "bg-purple-50 text-purple-700 border-purple-200" :
+                       app.status === "Reviewing" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                       "bg-blue-50 text-blue-700 border-blue-200",
+          skills: app.candidate?.skills || app.skills || ["React", "TypeScript"],
+          appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : app.appliedDate || "Recently",
+          avatar: app.candidate?.avatar || app.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=180&auto=format&fit=crop&q=80",
+        }));
+        setRecentApplicants(mapped);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F7F9F9] flex">
       <DashboardSidebar />
@@ -149,7 +179,7 @@ export default function CompanyDashboardPage() {
                   href="/company/applications"
                   className="inline-flex items-center gap-1 text-xs font-semibold text-[#4B9C93] hover:text-[#3d867e] transition-colors"
                 >
-                  <span>View All Applications ({mockRecentApplicants.length})</span>
+                  <span>View All Applications ({recentApplicants.length})</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -168,7 +198,7 @@ export default function CompanyDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {mockRecentApplicants.map((candidate) => (
+                  {recentApplicants.map((candidate) => (
                     <tr key={candidate.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">

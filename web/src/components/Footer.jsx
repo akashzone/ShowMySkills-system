@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Github, BookOpen, ShieldCheck, Heart } from "lucide-react";
+import { Terminal, Github, BookOpen, ShieldCheck, Heart } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="space-y-4 md:col-span-1">
           <div className="flex items-center space-x-2.5">
             <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-              <Sparkles className="w-4 h-4" />
+              <Terminal className="w-4 h-4" />
             </div>
             <span className="font-extrabold text-lg text-white">
               ShowMy<span className="text-indigo-400">Skills</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   FileText,
@@ -21,6 +21,7 @@ import {
 
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { applicationService } from "@/services/apiClient";
 
 const mockApplications = [
   {
@@ -135,6 +136,39 @@ const statusStyles = {
 export default function StudentApplicationsPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [applications, setApplications] = useState(mockApplications);
+
+  useEffect(() => {
+    let isMounted = true;
+    applicationService.getMyApplications(mockApplications).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        const mapped = res.map((app) => ({
+          id: app._id || app.id,
+          internshipId: app.internship?._id || app.internshipId || "int-1",
+          companyName: app.internship?.companyName || app.companyName || "Partner Company",
+          role: app.internship?.title || app.role || "Internship Role",
+          location: app.internship?.location || app.location || "Remote",
+          workType: app.internship?.workType || app.workType || "Remote",
+          stipend: app.internship?.stipend || app.stipend || "Competitive",
+          appliedDate: app.createdAt
+            ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+            : app.appliedDate || "Recently",
+          status: app.status
+            ? app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()
+            : "Applied",
+          stageNotes: app.notes || app.stageNotes || "Application submitted successfully.",
+          recruiterName: app.recruiterName || "Campus Recruiter",
+          recruiterRole: app.recruiterRole || "Talent Team",
+          skillsMatched: app.internship?.skills || app.skillsMatched || ["Software", "Engineering"],
+          logo: app.internship?.logo || app.logo || "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=100&h=100&fit=crop",
+        }));
+        setApplications(mapped);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const tabs = [
     "All",
@@ -146,7 +180,7 @@ export default function StudentApplicationsPage() {
     "Rejected",
   ];
 
-  const filteredApplications = mockApplications.filter((app) => {
+  const filteredApplications = applications.filter((app) => {
     const matchesTab = activeTab === "All" || app.status === activeTab;
     const matchesSearch =
       app.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -192,7 +226,7 @@ export default function StudentApplicationsPage() {
                 Total Applied
               </p>
               <p className="text-xl font-extrabold text-slate-900 mt-0.5">
-                {mockApplications.length}
+                {applications.length}
               </p>
             </div>
             <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
@@ -200,7 +234,7 @@ export default function StudentApplicationsPage() {
                 In Active Stages
               </p>
               <p className="text-xl font-extrabold text-blue-600 mt-0.5">
-                {mockApplications.filter((a) => ["Reviewing", "Shortlisted", "Interviewing"].includes(a.status)).length}
+                {applications.filter((a) => ["Reviewing", "Shortlisted", "Interviewing"].includes(a.status)).length}
               </p>
             </div>
             <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
@@ -208,7 +242,7 @@ export default function StudentApplicationsPage() {
                 Offers Received
               </p>
               <p className="text-xl font-extrabold text-emerald-600 mt-0.5">
-                {mockApplications.filter((a) => a.status === "Offered").length}
+                {applications.filter((a) => a.status === "Offered").length}
               </p>
             </div>
             <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">

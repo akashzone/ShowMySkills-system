@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   User,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { authService, apiRequest } from "@/services/apiClient";
 
 const tabs = [
   { id: "profile", label: "Profile Info", icon: User },
@@ -44,6 +45,25 @@ export default function SettingsPage() {
     linkedin: "https://linkedin.com/in/cbit-student",
   });
 
+  useEffect(() => {
+    let isMounted = true;
+    authService.getCurrentUser(null).then((user) => {
+      if (isMounted && user) {
+        setProfile((prev) => ({
+          ...prev,
+          name: user.name || prev.name,
+          email: user.email || prev.email,
+          college: user.college || prev.college,
+          headline: user.headline || prev.headline,
+          bio: user.bio || prev.bio,
+        }));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Security Form state
   const [passwords, setPasswords] = useState({
     current: "",
@@ -67,9 +87,12 @@ export default function SettingsPage() {
     allowDirectMessages: true,
   });
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setSaved(true);
+    try {
+      await apiRequest("/auth/me", "PUT", profile);
+    } catch {}
     setTimeout(() => setSaved(false), 3000);
   };
 
