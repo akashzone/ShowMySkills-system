@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   ExternalLink,
   Edit3,
-  Sparkles,
   ArrowRight,
   Heart,
   Share2,
@@ -186,7 +185,7 @@ export default function CompanyProfilePage() {
             {/* Gradient Top Banner */}
             <div className="h-44 sm:h-52 bg-gradient-to-r from-[#4B9C93] via-[#3d867e] to-[#255e57] relative p-6 flex items-start justify-between">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
                 <span>Verified Enterprise Partner</span>
               </div>
 
@@ -447,7 +446,7 @@ export default function CompanyProfilePage() {
 
                 <div className="bg-gradient-to-br from-[#E6F7F3] to-teal-50 rounded-3xl p-6 border border-[#4B9C93]/20 space-y-3">
                   <div className="w-9 h-9 rounded-xl bg-[#4B9C93] text-white flex items-center justify-center">
-                    <Sparkles className="w-5 h-5" />
+                    <Building2 className="w-5 h-5" />
                   </div>
                   <h4 className="font-bold text-gray-900 text-sm">Need Help Hiring?</h4>
                   <p className="text-xs text-gray-600 leading-relaxed">
