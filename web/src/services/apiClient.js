@@ -70,9 +70,12 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
       } catch {
         // Not a JSON response
       }
-      throw new Error(
+      const err = new Error(
         errorData.message || `Request failed with HTTP status ${res.status}`
       );
+      err.status = res.status;
+      err.data = errorData;
+      throw err;
     }
 
     return await res.json();
@@ -83,12 +86,109 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
 }
 
 /**
- * Executes an API request with seamless fallback to dummy data if backend is offline.
+ * Health check probe for system status and /error diagnostics.
+ * Evaluates both Express API server availability and MongoDB database state.
+ */
+export async function checkBackendHealth() {
+  const baseUrl = getApiBaseUrl();
+  const startTime = Date.now();
+
+  try {
+    const res = await fetch(`${baseUrl}/health`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+
+    const latencyMs = Date.now() - startTime;
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch {
+      payload = null;
+    }
+
+    if (res.status === 200) {
+      return {
+        online: true,
+        statusCode: 200,
+        latencyMs,
+        backend: payload?.services?.backend || { status: "up" },
+        database: payload?.services?.database || { status: "connected" },
+        message: payload?.message || "All core systems operational.",
+        raw: payload,
+      };
+    } else if (res.status === 503) {
+      return {
+        online: true, // Express is responding, but service is degraded
+        statusCode: 503,
+        latencyMs,
+        backend: payload?.services?.backend || { status: "up" },
+        database: payload?.services?.database || {
+          status: "disconnected",
+          error: "MongoDB is not running or disconnected",
+        },
+        message:
+          payload?.message || "Database service unavailable. MongoDB is not running.",
+        raw: payload,
+      };
+    } else {
+      return {
+        online: true,
+        statusCode: res.status,
+        latencyMs,
+        backend: payload?.services?.backend || { status: "unknown" },
+        database: payload?.services?.database || { status: "unknown" },
+        message: payload?.message || `HTTP ${res.status}`,
+        raw: payload,
+      };
+    }
+  } catch (err) {
+    const latencyMs = Date.now() - startTime;
+    return {
+      online: false, // Express is NOT running or unreachable
+      statusCode: 503,
+      latencyMs,
+      backend: {
+        status: "offline",
+        error: err.message || "Failed to connect to Express backend server.",
+      },
+      database: {
+        status: "unknown",
+        error: "Cannot check MongoDB status because backend server is not running.",
+      },
+      message: "Backend server is not running or unreachable at " + baseUrl,
+      raw: { error: err.message },
+    };
+  }
+}
+
+/**
+ * Executes a direct API request and unwraps the response data.
  * @param {string} endpoint - API route relative to /api
  * @param {string} method - HTTP method
  * @param {any} body - Request body
- * @param {any} fallbackData - Mock data to return if backend is unavailable
  * @param {Function} [transformFn] - Optional transformer function applied to real API data
+ */
+export async function apiFetch(
+  endpoint,
+  method = "GET",
+  body = null,
+  transformFn = null
+) {
+  const json = await apiRequest(endpoint, method, body);
+  const data = json.data !== undefined ? json.data : json;
+  if (transformFn && typeof transformFn === "function") {
+    return transformFn(data);
+  }
+  return data;
+}
+
+/**
+ * Standard API request unwrap with safe error handling (returns null/empty, never dummy data).
  */
 export async function apiFetchWithFallback(
   endpoint,
@@ -105,18 +205,15 @@ export async function apiFetchWithFallback(
     }
     return data;
   } catch (err) {
-    // If backend is unreachable or throws, log debug and return provided fallback
     if (process.env.NODE_ENV !== "production") {
-      console.warn(
-        `[ShowMySkills API Fallback] ${method} ${endpoint} unreachable (${err.message}). Using mock data.`
-      );
+      console.warn(`[ShowMySkills API Error] ${method} ${endpoint}: ${err.message}`);
     }
     return fallbackData;
   }
 }
 
 // ─────────────────────────────────────────────────────────────
-// DOMAIN-SPECIFIC RESILIENT API SERVICES
+// DOMAIN-SPECIFIC DATABASE API SERVICES
 // ─────────────────────────────────────────────────────────────
 
 export const authService = {
@@ -128,8 +225,8 @@ export const authService = {
     return apiRequest("/auth/register", "POST", userData);
   },
 
-  getCurrentUser: async (fallbackUser = null) => {
-    return apiFetchWithFallback("/auth/me", "GET", null, fallbackUser);
+  getCurrentUser: async () => {
+    return apiFetchWithFallback("/auth/me", "GET", null, null);
   },
 
   verifyEmail: async (email, otp) => {
@@ -146,14 +243,14 @@ export const authService = {
 };
 
 export const internshipService = {
-  list: async (params = {}, fallback = []) => {
+  list: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/internships?${queryString}` : "/internships";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
-  getById: async (id, fallback = null) => {
-    return apiFetchWithFallback(`/internships/${id}`, "GET", null, fallback);
+  getById: async (id) => {
+    return apiFetchWithFallback(`/internships/${id}`, "GET", null, null);
   },
 
   create: async (internshipData) => {
@@ -161,180 +258,135 @@ export const internshipService = {
   },
 
   apply: async (internshipId, notes = "") => {
-    try {
-      return await apiRequest("/applications/apply", "POST", { internshipId, notes });
-    } catch {
-      // Fallback optimistic success for offline demo
-      return { success: true, message: "Application submitted successfully" };
-    }
+    return apiRequest("/applications/apply", "POST", { internshipId, notes });
   },
 
   toggleBookmark: async (internshipId) => {
-    try {
-      return await apiRequest(`/bookmarks/internships/${internshipId}`, "POST");
-    } catch {
-      return { success: true, bookmarked: true };
-    }
+    return apiRequest(`/bookmarks/internships/${internshipId}`, "POST");
   },
 };
 
 export const peopleService = {
-  list: async (params = {}, fallback = []) => {
+  list: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/users?${queryString}` : "/users";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
-  getById: async (id, fallback = null) => {
-    return apiFetchWithFallback(`/users/${id}`, "GET", null, fallback);
+  getById: async (id) => {
+    return apiFetchWithFallback(`/users/${id}`, "GET", null, null);
   },
 };
 
 export const applicationService = {
-  getMyApplications: async (fallback = []) => {
-    return apiFetchWithFallback("/applications/my-applications", "GET", null, fallback);
+  getMyApplications: async () => {
+    return apiFetchWithFallback("/applications/my-applications", "GET", null, []);
   },
 
-  getCompanyApplications: async (params = {}, fallback = []) => {
+  getCompanyApplications: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString
       ? `/applications/company-applications?${queryString}`
       : "/applications/company-applications";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   updateStatus: async (applicationId, status, notes = "") => {
-    try {
-      return await apiRequest(`/applications/${applicationId}/status`, "PUT", {
-        status,
-        notes,
-      });
-    } catch {
-      return { success: true, message: `Status updated to ${status}` };
-    }
+    return apiRequest(`/applications/${applicationId}/status`, "PUT", {
+      status,
+      notes,
+    });
   },
 };
 
 export const chatService = {
-  getConversations: async (fallback = []) => {
-    return apiFetchWithFallback("/chats/conversations", "GET", null, fallback);
+  getConversations: async () => {
+    return apiFetchWithFallback("/chats/conversations", "GET", null, []);
   },
 
-  getMessages: async (conversationId, fallback = []) => {
+  getMessages: async (conversationId) => {
     return apiFetchWithFallback(
       `/chats/conversations/${conversationId}/messages`,
       "GET",
       null,
-      fallback
+      []
     );
   },
 
   sendMessage: async (text, receiverId, conversationId = null) => {
-    try {
-      return await apiRequest("/chats/messages", "POST", {
-        text,
-        receiverId,
-        conversationId,
-      });
-    } catch {
-      return {
-        success: true,
-        data: {
-          id: `msg-${Date.now()}`,
-          text,
-          sender: "me",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      };
-    }
+    return apiRequest("/chats/messages", "POST", {
+      text,
+      receiverId,
+      conversationId,
+    });
   },
 };
 
 export const launchpadService = {
-  list: async (params = {}, fallback = []) => {
+  list: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/launchpad?${queryString}` : "/launchpad";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   recordClick: async (id) => {
-    try {
-      return await apiRequest(`/launchpad/${id}/click`, "POST");
-    } catch {
-      return { success: true };
-    }
+    return apiRequest(`/launchpad/${id}/click`, "POST");
   },
 };
 
 export const adminService = {
-  getOverview: async (fallback = null) => {
-    return apiFetchWithFallback("/admin/overview", "GET", null, fallback);
+  getOverview: async () => {
+    return apiFetchWithFallback("/admin/overview", "GET", null, null);
   },
 
-  getUsers: async (params = {}, fallback = []) => {
+  getUsers: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/admin/users?${queryString}` : "/admin/users";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   updateRoleTag: async (userId, roleTag) => {
-    try {
-      return await apiRequest(`/admin/users/${userId}/role-tag`, "PUT", { roleTag });
-    } catch {
-      return { success: true, message: `Role tag updated to ${roleTag}` };
-    }
+    return apiRequest(`/admin/users/${userId}/role-tag`, "PUT", { roleTag });
   },
 
   moderateInternship: async (internshipId, data) => {
-    try {
-      return await apiRequest(`/admin/internships/${internshipId}/moderate`, "PUT", data);
-    } catch {
-      return { success: true, message: "Internship moderation updated" };
-    }
+    return apiRequest(`/admin/internships/${internshipId}/moderate`, "PUT", data);
   },
 
-  getVerifications: async (params = {}, fallback = []) => {
+  getVerifications: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString
       ? `/admin/verifications?${queryString}`
       : "/admin/verifications";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   reviewVerification: async (verificationId, status, rejectionReason = "") => {
-    try {
-      return await apiRequest(`/admin/verifications/${verificationId}`, "PUT", {
-        status,
-        rejectionReason,
-      });
-    } catch {
-      return { success: true, message: `Verification ${status}` };
-    }
+    return apiRequest(`/admin/verifications/${verificationId}`, "PUT", {
+      status,
+      rejectionReason,
+    });
   },
 
-  getAnalytics: async (fallback = null) => {
-    return apiFetchWithFallback("/admin/analytics", "GET", null, fallback);
+  getAnalytics: async () => {
+    return apiFetchWithFallback("/admin/analytics", "GET", null, null);
   },
 };
 
 export const notificationService = {
-  list: async (fallback = []) => {
-    return apiFetchWithFallback("/notifications", "GET", null, fallback);
+  list: async () => {
+    return apiFetchWithFallback("/notifications", "GET", null, []);
   },
 
   markRead: async (notificationId = null) => {
-    try {
-      return await apiRequest("/notifications/mark-read", "PUT", { notificationId });
-    } catch {
-      return { success: true };
-    }
+    return apiRequest("/notifications/mark-read", "PUT", { notificationId });
   },
 };
 
 export const supportService = {
-  getFaqs: async (search = "", fallback = []) => {
+  getFaqs: async (search = "") => {
     const endpoint = search ? `/support/faqs?search=${encodeURIComponent(search)}` : "/support/faqs";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   submitTicket: async (ticketData) => {
