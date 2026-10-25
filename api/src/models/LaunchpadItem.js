@@ -40,6 +40,10 @@ const launchpadItemSchema = new mongoose.Schema(
       type: String,
       default: 'generic',
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
     applyUrl: {
       type: String,
       required: true,

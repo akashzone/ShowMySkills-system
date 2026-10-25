@@ -88,6 +88,10 @@ const userSchema = new mongoose.Schema(
       enum: ['Admin', 'Maintainer', 'Promoter', 'Contributor', 'Ambassador', 'Regular'],
       default: 'Regular',
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
     headline: {
       type: String,
       default: '',

@@ -29,7 +29,7 @@ export const launchpadController = {
 
       const [items, total] = await Promise.all([
         LaunchpadItem.find(filter)
-          .sort({ featured: -1, clickCount: -1, createdAt: -1 })
+          .sort({ displayOrder: 1, createdAt: 1 })
           .skip(skip)
           .limit(Number(limit))
           .lean(),

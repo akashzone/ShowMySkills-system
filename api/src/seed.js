@@ -54,6 +54,9 @@ export const seedDatabase = async () => {
     ]);
 
     const defaultHashedPassword = await bcrypt.hash('Password@123', 10);
+    const studentHashedPassword = await bcrypt.hash('student@123', 10);
+    const companyHashedPassword = await bcrypt.hash('company@123', 10);
+    const adminHashedPassword = await bcrypt.hash('admin@123', 10);
 
     // ──────────────────────────────────────────────────────────
     // 1. Core Platform Administrators
@@ -72,23 +75,44 @@ export const seedDatabase = async () => {
       location: 'Trivandrum, Kerala',
     });
 
-    const moderatorUser = await User.create({
-      name: 'Dr. Sarah Mathews',
-      email: 'sarah.mathews@cet.ac.in',
-      phone: '+91 98480 00002',
-      password: defaultHashedPassword,
+    const xyphxAdmin = await User.create({
+      name: 'Platform Super Admin',
+      email: 'admin@xyphx.com',
+      phone: '+91 98000 00002',
+      password: adminHashedPassword,
       role: 'admin',
       roleTag: 'Admin',
-      headline: 'Dean of Placements & Academic Partner Liaison',
+      headline: 'Platform Administrator & System Governance at Xyphx',
       emailVerified: true,
-      college: 'College of Engineering Trivandrum',
-      location: 'Trivandrum, Kerala',
+      college: 'ShowMySkills Platform Operations',
+      location: 'Bengaluru, Karnataka',
     });
 
     // ──────────────────────────────────────────────────────────
     // 2. Company Recruiter Profiles
     // ──────────────────────────────────────────────────────────
     console.log('🏢 Creating verified enterprise companies...');
+    const xyphxCompany = await User.create({
+      name: 'Xyphx Campus Hiring',
+      email: 'company@xyphx.com',
+      phone: '+91 80 9999 8888',
+      password: companyHashedPassword,
+      role: 'company',
+      headline: 'Campus Recruiting & Engineering Talent Lead at Xyphx',
+      emailVerified: true,
+      companyProfile: {
+        companyName: 'Xyphx Technologies',
+        tagline: 'Engineering the next wave of developer ecosystems',
+        aboutCompany: 'Xyphx Technologies builds intelligent talent assessment systems, open-source benchmarking engines, and developer platforms.',
+        establishedYear: 2022,
+        industryType: 'Software Development',
+        companySize: '51-200',
+        website: 'https://xyphx.com',
+        linkedin: 'https://linkedin.com/company/xyphx',
+        isVerified: true,
+      },
+    });
+
     const websharkCompany = await User.create({
       name: 'WebShark Recruitment Team',
       email: 'recruitment@webshark.io',
@@ -182,49 +206,92 @@ export const seedDatabase = async () => {
     });
 
     // ──────────────────────────────────────────────────────────
-    // 4. Star Student Candidates & Portfolios
+    // 4. Exact Star Student Candidates (Matching UI & Screenshots)
     // ──────────────────────────────────────────────────────────
-    console.log('💻 Creating verified student candidates...');
+    console.log('💻 Creating verified student candidates with exact attributes...');
+
+    // 0. Demo Student Candidate (student@xyphx.com)
+    const xyphxStudent = await User.create({
+      displayOrder: 0,
+      name: 'Demo Student',
+      email: 'student@xyphx.com',
+      phone: '+91 98765 43210',
+      password: studentHashedPassword,
+      role: 'student',
+      roleTag: 'Maintainer',
+      headline: 'Full-Stack Developer | React, Next.js & Node.js',
+      college: 'College of Engineering Trivandrum',
+      course: 'B.Tech',
+      branch: 'Computer Science and Engineering',
+      graduationYear: 2026,
+      location: 'Bengaluru, India',
+      profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180',
+      reputationScore: 30,
+      topPercentile: 'Top 1% in Full Stack',
+      completionPercentage: 100,
+      emailVerified: true,
+      collegeIdVerified: true,
+      bio: 'Passionate software engineering student with proven skills in Next.js, Node.js, TypeScript, and MongoDB. Open source contributor at ShowMySkills.',
+      primarySkills: ['React', 'Next.js', 'Node.js', 'MongoDB', 'TypeScript', 'Tailwind CSS'],
+      skills: [
+        { name: 'React', level: 'expert', endorsedCount: 45 },
+        { name: 'Next.js', level: 'expert', endorsedCount: 42 },
+        { name: 'Node.js', level: 'advanced', endorsedCount: 38 },
+        { name: 'MongoDB', level: 'advanced', endorsedCount: 35 },
+      ],
+      projects: [
+        {
+          title: 'ShowMySkills Benchmark Engine',
+          description: 'Distributed coding skill benchmark platform with containerized sandboxing.',
+          skillsUsed: ['Next.js', 'Node.js', 'MongoDB'],
+          projectUrl: 'https://showmyskills.xyphx.com',
+        },
+      ],
+    });
+
+    // 1. Joel A. Jacob
     const joel = await User.create({
+      displayOrder: 1,
       name: 'Joel A. Jacob',
       email: 'joel.jacob@cet.ac.in',
       phone: '+91 98471 23456',
       password: defaultHashedPassword,
       role: 'student',
       roleTag: 'Maintainer',
-      headline: 'Frontend Engineer | React 19 & Next.js Architecture',
+      headline: 'Frontend Developer',
       college: 'College of Engineering Trivandrum',
       course: 'B.Tech',
       branch: 'Computer Science (AI & Machine Learning)',
       graduationYear: 2026,
       location: 'Punalur, Kollam, Kerala, India',
       profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180',
-      reputationScore: 93,
+      reputationScore: 23,
       topPercentile: 'Top 5% in Frontend',
       completionPercentage: 95,
       emailVerified: true,
       collegeIdVerified: true,
       bio: 'Passionate frontend engineer focused on building intuitive, high-performance web and mobile applications with modern JavaScript frameworks.',
-      primarySkills: ['React', 'Next.js', 'Tailwind CSS', 'TypeScript', 'App Development'],
+      primarySkills: ['App Development', 'Communication', 'React', 'Next.js', 'Tailwind CSS', 'TypeScript'],
       skills: [
+        { name: 'App Development', level: 'advanced', endorsedCount: 23 },
+        { name: 'Communication', level: 'advanced', endorsedCount: 19 },
         { name: 'React', level: 'expert', endorsedCount: 42 },
         { name: 'Next.js', level: 'expert', endorsedCount: 38 },
         { name: 'Tailwind CSS', level: 'expert', endorsedCount: 29 },
         { name: 'TypeScript', level: 'advanced', endorsedCount: 25 },
-        { name: 'Communication', level: 'advanced', endorsedCount: 19 },
       ],
       projects: [
         {
           id: 'p1',
           title: 'CampusHub Mobile',
-          description: 'Flutter & Firebase app for campus events, peer notes, and study group coordination.',
+          description: 'Flutter & Firebase app for campus events and peer networking.',
           tags: ['Flutter', 'Firebase', 'Mobile'],
           verified: true,
         },
         {
           id: 'p2',
           title: 'ShowMySkills Web Client',
-          description: 'High-performance student portfolio showcase system with swipeable job decks.',
+          description: 'High-performance student portfolio showcase system.',
           tags: ['React', 'Next.js', 'Tailwind CSS'],
           verified: true,
         },
@@ -233,45 +300,48 @@ export const seedDatabase = async () => {
       linkedinUrl: 'https://linkedin.com/in/joel-jacob',
     });
 
+    // 2. S SIDHARTH
     const sidharth = await User.create({
+      displayOrder: 2,
       name: 'S SIDHARTH',
       email: 'sidharth.s@cet.ac.in',
       phone: '+91 94470 65432',
       password: defaultHashedPassword,
       role: 'student',
       roleTag: 'Admin',
-      headline: 'UI/UX Product Designer & Human-Centered Systems Engineer',
+      headline: 'UI/UX Designer',
       college: 'College of Engineering Trivandrum',
       course: 'B.Tech',
       branch: 'Industrial Engineering',
       graduationYear: 2026,
       location: 'Trivandrum, Kerala',
       profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/ab8e554398afb86403d2a7da0c420fe67c60f085?width=180',
-      reputationScore: 96,
+      reputationScore: 63,
       topPercentile: 'Top 3% in Product Design',
       completionPercentage: 98,
       emailVerified: true,
       collegeIdVerified: true,
       bio: 'Product designer and engineer who blends human-centered design with computational engineering to build seamless digital experiences.',
-      primarySkills: ['Figma', 'UI/UX Design', 'Design Systems', 'User Research'],
+      primarySkills: ['Machine Learning / AI', 'Operating Systems', 'UI/UX Design', 'Figma', 'Design Systems'],
       skills: [
-        { name: 'Figma', level: 'expert', endorsedCount: 54 },
-        { name: 'Design Systems', level: 'expert', endorsedCount: 46 },
-        { name: 'User Research', level: 'advanced', endorsedCount: 31 },
-        { name: 'Prototyping', level: 'expert', endorsedCount: 39 },
+        { name: 'Machine Learning / AI', level: 'advanced', endorsedCount: 32 },
+        { name: 'Operating Systems', level: 'advanced', endorsedCount: 28 },
+        { name: 'UI/UX Design', level: 'expert', endorsedCount: 54 },
+        { name: 'Figma', level: 'expert', endorsedCount: 46 },
+        { name: 'Design Systems', level: 'expert', endorsedCount: 39 },
       ],
       projects: [
         {
           id: 'p3',
-          title: 'Fintech Analytics Dashboard System',
-          description: 'Design system and atomic interface tokens for institutional banking portal.',
+          title: 'FinFlow Analytics Dashboard',
+          description: 'Design system and interface for enterprise financial metrics.',
           tags: ['Figma', 'Design Systems', 'UI/UX'],
           verified: true,
         },
         {
           id: 'p4',
-          title: 'EcoTrack Transit UX',
-          description: 'Human-centered design and interactive prototype for smart city public transit navigation.',
+          title: 'EcoTrack Mobility',
+          description: 'UX research and high-fidelity prototype for sustainable transit.',
           tags: ['UX Research', 'Figma', 'Wireframing'],
           verified: true,
         },
@@ -280,79 +350,282 @@ export const seedDatabase = async () => {
       linkedinUrl: 'https://linkedin.com/in/sidharth-s',
     });
 
+    // 3. Reshma Udhayan
     const reshma = await User.create({
+      displayOrder: 3,
       name: 'Reshma Udhayan',
       email: 'reshma.u@cet.ac.in',
       phone: '+91 98460 11223',
       password: defaultHashedPassword,
       role: 'student',
       roleTag: 'Promoter',
-      headline: 'FullStack Developer & Industrial Systems Innovator',
+      headline: 'FullStack Developer',
       college: 'College of Engineering Trivandrum',
       course: 'B.Tech',
-      branch: 'Industrial Engineering',
+      branch: 'Industrial engineering',
       graduationYear: 2026,
-      location: 'Trivandrum, Kerala',
+      location: 'Trivandrum',
       profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/c3059191c12486377929540d913e78b03ba9bddc?width=180',
-      reputationScore: 88,
+      reputationScore: 72,
       topPercentile: 'Top 10% in Full Stack',
       completionPercentage: 92,
       emailVerified: true,
       collegeIdVerified: true,
-      bio: 'Full-stack developer with a strong mechanical and systems engineering background, engineering scalable web platforms and 3D modeling tools.',
-      primarySkills: ['Node.js', 'React', 'PostgreSQL', 'SolidWorks', 'CAD / CAM / CAE'],
+      bio: 'Full-stack developer with a strong mechanical & systems design background, engineering scalable web platforms and 3D modeling tools.',
+      primarySkills: ['SolidWorks', 'CAD / CAM / CAE', 'Node.js', 'React', 'PostgreSQL', 'FullStack Web'],
       skills: [
+        { name: 'SolidWorks', level: 'expert', endorsedCount: 40 },
+        { name: 'CAD / CAM / CAE', level: 'expert', endorsedCount: 35 },
         { name: 'Node.js', level: 'advanced', endorsedCount: 31 },
         { name: 'React', level: 'advanced', endorsedCount: 28 },
         { name: 'PostgreSQL', level: 'advanced', endorsedCount: 22 },
       ],
+      projects: [
+        {
+          id: 'p5',
+          title: 'AutoCAD Cloud Sync',
+          description: 'Web platform connecting CAD rendering pipelines with real-time feedback.',
+          tags: ['Cloud', 'CAD', 'WebGL'],
+          verified: true,
+        },
+        {
+          id: 'p6',
+          title: 'TalentLink Portal',
+          description: 'Full-stack recruiting platform with automated resume parsing.',
+          tags: ['React', 'Node.js', 'PostgreSQL'],
+          verified: true,
+        },
+      ],
     });
 
+    // 4. Vaishnav RL
     const vaishnav = await User.create({
+      displayOrder: 4,
       name: 'Vaishnav RL',
       email: 'vaishnav.rl@cet.ac.in',
       phone: '+91 94960 99887',
       password: defaultHashedPassword,
       role: 'student',
       roleTag: 'Ambassador',
-      headline: 'Campus Tech Ambassador, Brand Designer & Growth Lead',
+      headline: 'Graphic Designer',
       college: 'College of Engineering Trivandrum',
       course: 'B.Tech',
       branch: 'Industrial Engineering',
       graduationYear: 2026,
-      location: 'Trivandrum, Kerala',
+      location: 'Trivandrum',
       profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/46fce00ed55aca498d8347d953abdc65e3ba2655?width=180',
-      reputationScore: 85,
+      reputationScore: 81,
       completionPercentage: 90,
       emailVerified: true,
       collegeIdVerified: true,
-      bio: 'Visual and brand designer translating quantitative business insights and financial narratives into compelling graphics and tech community outreach.',
-      primarySkills: ['Brand Identity', 'Motion Graphics', 'Financial Analysis', 'UI/UX'],
+      bio: 'Visual and brand designer translating quantitative business insights and financial narratives into compelling graphics.',
+      primarySkills: ['UI/ UX', 'Financial analysis', 'Brand Identity', 'Motion Graphics', 'Figma'],
+      skills: [
+        { name: 'UI/ UX', level: 'expert', endorsedCount: 45 },
+        { name: 'Financial analysis', level: 'advanced', endorsedCount: 38 },
+        { name: 'Brand Identity', level: 'expert', endorsedCount: 30 },
+      ],
+      projects: [
+        {
+          id: 'p7',
+          title: 'Venture Metrics Annual Report',
+          description: 'Visual storytelling and data visualization branding package.',
+          tags: ['Branding', 'DataViz'],
+          verified: true,
+        },
+        {
+          id: 'p8',
+          title: 'Aura Brand Identity',
+          description: 'Complete visual identity and design tokens for tech startups.',
+          tags: ['Figma', 'Identity'],
+          verified: true,
+        },
+      ],
     });
 
+    // 5. Abhay SA
     const abhay = await User.create({
+      displayOrder: 5,
       name: 'Abhay SA',
       email: 'abhay.sa@cet.ac.in',
       phone: '+91 95670 44332',
       password: defaultHashedPassword,
       role: 'student',
       roleTag: 'Contributor',
-      headline: 'Open Source Contributor & Distributed Backend Enthusiast',
+      headline: 'FullStack Developer',
+      college: 'College of Engineering Trivandrum',
+      course: 'B.Tech',
+      branch: 'Industrial engineering',
+      graduationYear: 2026,
+      location: 'Trivandrum',
+      profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/f7559f012fcf86117c87ef912259ea3d4b2467c5?width=180',
+      reputationScore: 72,
+      completionPercentage: 88,
+      emailVerified: true,
+      collegeIdVerified: true,
+      bio: 'Full-stack engineer passionate about industrial automation, backend architectures, and developer tooling.',
+      primarySkills: ['SolidWorks', 'CAD / CAM / CAE', 'Next.js', 'Express', 'Docker', 'REST APIs'],
+      skills: [
+        { name: 'SolidWorks', level: 'advanced', endorsedCount: 30 },
+        { name: 'CAD / CAM / CAE', level: 'advanced', endorsedCount: 26 },
+        { name: 'Next.js', level: 'expert', endorsedCount: 34 },
+      ],
+      projects: [
+        {
+          id: 'p9',
+          title: 'Smart Inventory Orchestrator',
+          description: 'Real-time warehouse tracking platform with IoT integration.',
+          tags: ['IoT', 'Node.js', 'Docker'],
+          verified: true,
+        },
+        {
+          id: 'p10',
+          title: 'RapidCAD Web Viewer',
+          description: 'Browser-based lightweight 3D CAD inspector.',
+          tags: ['Three.js', 'CAD'],
+          verified: true,
+        },
+      ],
+    });
+
+    // 6. Rishi Chandran
+    const rishi = await User.create({
+      displayOrder: 6,
+      name: 'Rishi Chandran',
+      email: 'rishi.chandran@cet.ac.in',
+      phone: '+91 94470 88990',
+      password: defaultHashedPassword,
+      role: 'student',
+      roleTag: 'Ambassador',
+      headline: 'Graphic Designer',
+      college: 'College of Engineering Trivandrum',
+      course: 'B.Tech',
+      branch: 'Industrial Engineering',
+      graduationYear: 2026,
+      location: 'Trivandrum',
+      profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/ffe52c79545b2a85e56e27f28c8198d4551e8795?width=180',
+      reputationScore: 81,
+      completionPercentage: 90,
+      emailVerified: true,
+      collegeIdVerified: true,
+      bio: 'Multidisciplinary visual designer focused on marketing design, clean interface aesthetics, and conversion-focused landing pages.',
+      primarySkills: ['UI/ UX', 'Financial analysis', 'Typography', 'Illustrator', 'Product Strategy'],
+      skills: [
+        { name: 'UI/ UX', level: 'expert', endorsedCount: 42 },
+        { name: 'Financial analysis', level: 'advanced', endorsedCount: 31 },
+        { name: 'Typography', level: 'advanced', endorsedCount: 25 },
+      ],
+      projects: [
+        {
+          id: 'p11',
+          title: 'Apex Design System',
+          description: 'Modular design kit for fintech and data-heavy applications.',
+          tags: ['Figma', 'Fintech'],
+          verified: true,
+        },
+        {
+          id: 'p12',
+          title: 'Kerala Startup Mission Deck',
+          description: 'Pitch deck visual storytelling winning state-level innovation grant.',
+          tags: ['Branding', 'Strategy'],
+          verified: true,
+        },
+      ],
+    });
+
+    // 7. asher john
+    const asher = await User.create({
+      displayOrder: 7,
+      name: 'asher john',
+      email: 'asher.john@cet.ac.in',
+      phone: '+91 94460 33445',
+      password: defaultHashedPassword,
+      role: 'student',
+      roleTag: 'Promoter',
+      headline: 'Frontend Developer',
+      college: 'College of Engineering Trivandrum',
+      course: 'B.Tech',
+      branch: 'Computer Science (AI & Machine Learning)',
+      graduationYear: 2026,
+      location: 'Punalur, Kollam, Kerala, India',
+      profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/c108ffdec7504150607ccddcecf48749b1c50f54?width=180',
+      reputationScore: 23,
+      completionPercentage: 86,
+      emailVerified: true,
+      collegeIdVerified: true,
+      bio: 'Frontend engineer enthusiastic about AI-augmented applications, accessibility, and high framerate mobile interfaces.',
+      primarySkills: ['App Development', 'Communication', 'React Native', 'Vue.js', 'GraphQL'],
+      skills: [
+        { name: 'App Development', level: 'advanced', endorsedCount: 23 },
+        { name: 'Communication', level: 'advanced', endorsedCount: 19 },
+        { name: 'React Native', level: 'advanced', endorsedCount: 18 },
+      ],
+      projects: [
+        {
+          id: 'p13',
+          title: 'VoiceLearn AI',
+          description: 'Interactive language tutor with low-latency speech recognition.',
+          tags: ['AI', 'React Native'],
+          verified: true,
+        },
+        {
+          id: 'p14',
+          title: 'PulseUI',
+          description: 'Component library designed for rapid hackathon prototyping.',
+          tags: ['React', 'CSS'],
+          verified: true,
+        },
+      ],
+    });
+
+    // 8. Devikripa S
+    const devikripa = await User.create({
+      displayOrder: 8,
+      name: 'Devikripa S',
+      email: 'devikripa.s@cet.ac.in',
+      phone: '+91 95670 11992',
+      password: defaultHashedPassword,
+      role: 'student',
+      roleTag: 'Contributor',
+      headline: 'UI/UX Designer',
       college: 'College of Engineering Trivandrum',
       course: 'B.Tech',
       branch: 'Industrial Engineering',
       graduationYear: 2026,
       location: 'Trivandrum, Kerala',
-      profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/f7559f012fcf86117c87ef912259ea3d4b2467c5?width=180',
-      reputationScore: 82,
+      profileIcon: 'https://api.builder.io/api/v1/image/assets/TEMP/a5bb5f84222369dfc64ce1f696c04fdc36d5fa89?width=180',
+      reputationScore: 63,
       completionPercentage: 88,
       emailVerified: true,
       collegeIdVerified: true,
-      bio: 'Full-stack engineer passionate about industrial automation, container orchestration, and developer tooling.',
-      primarySkills: ['Next.js', 'Express', 'Docker', 'REST APIs', 'SolidWorks'],
+      bio: 'User experience designer who combines user research with behavioral psychology to design high-engagement digital products.',
+      primarySkills: ['Machine Learning / AI', 'Operating Systems', 'User Research', 'Wireframing', 'Figma'],
+      skills: [
+        { name: 'Machine Learning / AI', level: 'advanced', endorsedCount: 30 },
+        { name: 'Operating Systems', level: 'advanced', endorsedCount: 27 },
+        { name: 'Figma', level: 'expert', endorsedCount: 48 },
+      ],
+      projects: [
+        {
+          id: 'p15',
+          title: 'SkillVerify Student Dashboard',
+          description: 'End-to-end UX architecture for peer-verified technical competencies.',
+          tags: ['UX', 'Figma'],
+          verified: true,
+        },
+        {
+          id: 'p16',
+          title: 'HealthTrack Patient Flow',
+          description: 'Mobile telemedicine interface streamlined for elderly usability.',
+          tags: ['UI', 'Wireframing'],
+          verified: true,
+        },
+      ],
     });
 
-    const ananya = await User.create({
+    // Additional verified student talent
+    await User.create({
+      displayOrder: 9,
       name: 'Ananya Sharma',
       email: 'ananya.sharma@iitm.ac.in',
       phone: '+91 98450 77665',
@@ -376,11 +649,11 @@ export const seedDatabase = async () => {
       skills: [
         { name: 'Python', level: 'expert', endorsedCount: 45 },
         { name: 'PyTorch', level: 'advanced', endorsedCount: 34 },
-        { name: 'TensorFlow', level: 'advanced', endorsedCount: 29 },
       ],
     });
 
-    const rohan = await User.create({
+    await User.create({
+      displayOrder: 10,
       name: 'Rohan Nair',
       email: 'rohan.nair@nitc.ac.in',
       phone: '+91 94470 12389',
@@ -401,31 +674,177 @@ export const seedDatabase = async () => {
       primarySkills: ['React Native', 'Swift', 'TypeScript', 'Redux', 'Mobile UX'],
     });
 
-    const meera = await User.create({
-      name: 'Meera Krishnan',
-      email: 'meera.krishnan@bits-pilani.ac.in',
-      phone: '+91 98460 77123',
-      password: defaultHashedPassword,
-      role: 'student',
-      roleTag: 'Ambassador',
-      headline: 'DevOps & Site Reliability Engineer | Kubernetes & Terraform',
-      college: 'BITS Pilani',
-      course: 'B.E.',
-      branch: 'Computer Science',
-      graduationYear: 2026,
-      location: 'Pilani, Rajasthan',
-      profileIcon: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=180&auto=format&fit=crop&q=80',
-      reputationScore: 91,
-      completionPercentage: 94,
-      emailVerified: true,
-      collegeIdVerified: true,
-      primarySkills: ['Kubernetes', 'Docker', 'AWS', 'Terraform', 'CI/CD Pipelines'],
-    });
+    // ──────────────────────────────────────────────────────────
+    // 5. Exact Launchpad Opportunities (Matching UI & Screenshot 2)
+    // ──────────────────────────────────────────────────────────
+    console.log('🚀 Seeding top tier career launchpad opportunities (8 Verified)...');
+    await LaunchpadItem.create([
+      {
+        displayOrder: 1,
+        position: 'VCA Consulting & Analytics Intern',
+        company: 'Visa Inc.',
+        oneLiner: 'Formulate strategic payment analytics & data-driven advisory for global banking clients.',
+        location: 'Bengaluru / Mumbai, India (Hybrid)',
+        stipend: '₹75,000 - ₹90,000 / mo',
+        duration: '6 Months · Batch 2025/2026',
+        clicks: '1.8k clicks',
+        clickCount: 1820,
+        logoType: 'visa',
+        applyUrl: 'https://visa.wd5.myworkdayjobs.com/en-US/Visa_Early_Careers/job/VCA-Intern--IDS-_REF086121W',
+        skills: ['Data Analytics', 'SQL', 'Python'],
+        allSkills: ['Data Analytics', 'SQL', 'Python', 'Client Advisory', 'Financial Modeling', 'Tableau'],
+        about: 'Visa Consulting & Analytics (VCA) is the strategic consulting arm of Visa. We leverage Visa rich dataset to solve business challenges.',
+        perks: 'Pre-Placement Offer (PPO) opportunity, transit allowance, and comprehensive healthcare coverage.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 2,
+        position: 'Software Engineering Intern 2025',
+        company: 'Atlassian',
+        oneLiner: 'Build high-throughput microservices and collaborative UI primitives powering Jira & Confluence.',
+        location: 'Bengaluru, India (Remote Eligible)',
+        stipend: '₹1,30,000 / mo',
+        duration: 'Summer 2025 · 10-12 Weeks',
+        clicks: '2.4k clicks',
+        clickCount: 2450,
+        logoType: 'atlassian',
+        applyUrl: 'https://www.atlassian.com/company/careers/details/26273',
+        skills: ['Java / Kotlin', 'React', 'TypeScript'],
+        allSkills: ['Java / Kotlin', 'React', 'TypeScript', 'Distributed Systems', 'AWS', 'Microservices'],
+        about: 'Atlassian unleashes the potential of every team with products like Jira, Confluence, and Bitbucket.',
+        perks: 'Top-tier stipend, home office stipend, wellness budget, and direct mentorship from Principal Engineers.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 3,
+        position: 'Software Engineering Intern',
+        company: 'Google',
+        oneLiner: 'Engineer high-scale distributed systems, search infrastructure, and production AI models.',
+        location: 'Bengaluru / Hyderabad, India',
+        stipend: '₹1,15,000 / mo',
+        duration: 'Summer 2025 · 10-12 Weeks',
+        clicks: '4.1k clicks',
+        clickCount: 4120,
+        logoType: 'google',
+        applyUrl: 'https://careers.google.com/jobs/results/?q=Software%20Engineering%20Intern',
+        skills: ['C++ / Java', 'Python', 'DSA'],
+        allSkills: ['C++ / Java', 'Python', 'Algorithms', 'Distributed Systems', 'Machine Learning', 'Linux'],
+        about: 'Google software engineering interns work on core products that impact billions of people daily.',
+        perks: 'Free gourmet dining, relocation travel, housing assistance, and conversion opportunities for full-time SWE.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 4,
+        position: 'Software Engineer Intern (SDE)',
+        company: 'Microsoft',
+        oneLiner: 'Develop next-generation cloud services and enterprise tools on Azure & Windows Core.',
+        location: 'Bengaluru / Hyderabad, India',
+        stipend: '₹1,25,000 / mo',
+        duration: 'Summer 2025 · 8-12 Weeks',
+        clicks: '3.6k clicks',
+        clickCount: 3600,
+        logoType: 'microsoft',
+        applyUrl: 'https://careers.microsoft.com/us/en/search-results?keywords=Software%20Engineering%20Intern',
+        skills: ['C# / C++', 'Azure Cloud', 'Data Structures'],
+        allSkills: ['C# / C++', 'Azure Cloud', 'Data Structures', 'Full Stack', 'Distributed Computing', 'APIs'],
+        about: 'Microsoft Cloud and Enterprise engineering teams build planet-scale infrastructure.',
+        perks: 'Corporate housing allowance, premium health coverage, and mentorship from senior architects.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 5,
+        position: 'Frontend Systems & Frameworks Intern',
+        company: 'Vercel Inc.',
+        oneLiner: 'Build cutting-edge edge compute runtimes and serverless primitives for the Next.js ecosystem.',
+        location: 'San Francisco, CA · Global Remote',
+        stipend: '$8,000 / mo (~₹6.6L/mo)',
+        duration: 'Flexible · 3-6 Months',
+        clicks: '2.1k clicks',
+        clickCount: 2100,
+        logoType: 'vercel',
+        applyUrl: 'https://vercel.com/careers',
+        skills: ['Next.js', 'Serverless', 'TypeScript'],
+        allSkills: ['Next.js', 'Serverless', 'TypeScript', 'Edge Computing', 'Turbo', 'Web Performance'],
+        about: 'Vercel is the creator of Next.js and the leading frontend cloud platform. You will work on developer experience tooling, edge runtime compilation, and high-performance framework internals.',
+        perks: 'Fully remote flexibility, high-spec equipment stipend, and direct collaboration with world-class open-source creators.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 6,
+        position: 'Database Systems & Backend Intern',
+        company: 'Supabase',
+        oneLiner: 'Develop distributed PostgreSQL replication and realtime streaming database extensions.',
+        location: 'Singapore · Remote Global',
+        stipend: '$5,000 / mo (~₹4.1L/mo)',
+        duration: 'Summer 2025 · 3-4 Months',
+        clicks: '1.9k clicks',
+        clickCount: 1900,
+        logoType: 'supabase',
+        applyUrl: 'https://supabase.com/careers',
+        skills: ['PostgreSQL', 'Go / Rust', 'Docker'],
+        allSkills: ['PostgreSQL', 'Go / Rust', 'Docker', 'Realtime DB', 'Edge Functions', 'Distributed Systems'],
+        about: 'Supabase is an open source Firebase alternative built on PostgreSQL. Interns work directly on core open-source repositories handling realtime CDC, vector search, and edge authorization.',
+        perks: '100% remote asynchronous culture, open source attribution, and competitive global stipend.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 7,
+        position: 'Software Engineer Intern - Core Mobility',
+        company: 'Uber Technologies',
+        oneLiner: 'Build high-throughput dispatch algorithms and real-time geospatial routing engines.',
+        location: 'Bengaluru / Hyderabad, India',
+        stipend: '₹1,60,000 / mo',
+        duration: 'Summer 2025 · 2-3 Months',
+        clicks: '2.7k clicks',
+        clickCount: 2700,
+        logoType: 'uber',
+        applyUrl: 'https://www.uber.com/us/en/careers/list/',
+        skills: ['Golang / Java', 'Microservices', 'Kafka'],
+        allSkills: ['Golang / Java', 'Microservices', 'Kafka', 'Algorithms', 'Geospatial Indexing', 'gRPC'],
+        about: 'Uber connects the physical and digital worlds to help make movement happen at the push of a button. Interns engineer low-latency matchmaking algorithms, pricing engines, and safety telemetry.',
+        perks: 'Industry-leading monthly stipend, Uber credits, meal benefits, and dedicated mentor pairing.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+      {
+        displayOrder: 8,
+        position: 'Software Development Engineer Intern',
+        company: 'Amazon',
+        oneLiner: 'Build fault-tolerant distributed web services supporting millions of active shoppers & AWS users.',
+        location: 'Bengaluru / Chennai, India',
+        stipend: '₹1,10,000 / mo',
+        duration: '6 Months · Jan - Jun 2025',
+        clicks: '3.8k clicks',
+        clickCount: 3800,
+        logoType: 'amazon',
+        applyUrl: 'https://www.amazon.jobs/en/job_categories/software-development',
+        skills: ['Java', 'AWS Cloud', 'Distributed Systems'],
+        allSkills: ['Java', 'AWS Cloud', 'Distributed Systems', 'OOP', 'Database Design', 'CI/CD'],
+        about: 'Amazon SDE interns own and deploy features for production systems that touch millions of global consumers and enterprise cloud builders across Amazon Retail and AWS.',
+        perks: 'Relocation assistance, comprehensive health insurance, Amazon employee discount, and PPO eligibility.',
+        batchYear: '2025/2026',
+        isVerified: true,
+        featured: true,
+      },
+    ]);
 
     // ──────────────────────────────────────────────────────────
-    // 5. Active Verified Internships (Discovery Feed)
+    // 6. Active Corporate Internships (Discovery Feed)
     // ──────────────────────────────────────────────────────────
-    console.log('💼 Seeding rich corporate internships...');
+    console.log('💼 Seeding rich corporate internships for discovery deck...');
     const int1 = await Internship.create({
       company: 'WebShark Web Services',
       companyLogoText: 'WEBSHARK',
@@ -694,127 +1113,6 @@ export const seedDatabase = async () => {
     });
 
     // ──────────────────────────────────────────────────────────
-    // 6. Launchpad Top Opportunities (Verified Top Tier)
-    // ──────────────────────────────────────────────────────────
-    console.log('🚀 Seeding top tier career launchpad opportunities...');
-    await LaunchpadItem.create([
-      {
-        position: 'VCA Consulting & Analytics Intern',
-        company: 'Visa Inc.',
-        oneLiner: 'Formulate strategic payment analytics & data-driven advisory for global banking clients.',
-        location: 'Bengaluru / Mumbai, India (Hybrid)',
-        stipend: '₹75,000 - ₹90,000 / mo',
-        duration: '6 Months · Batch 2025/2026',
-        clicks: '1.8k clicks',
-        clickCount: 1820,
-        logoType: 'visa',
-        applyUrl: 'https://visa.wd5.myworkdayjobs.com/en-US/Visa_Early_Careers/job/VCA-Intern--IDS-_REF086121W',
-        skills: ['Data Analytics', 'SQL', 'Python'],
-        allSkills: ['Data Analytics', 'SQL', 'Python', 'Client Advisory', 'Financial Modeling', 'Tableau'],
-        about: 'Visa Consulting & Analytics (VCA) is the strategic consulting arm of Visa. We leverage Visa rich dataset to solve business challenges.',
-        perks: 'Pre-Placement Offer (PPO) opportunity, transit allowance, and comprehensive healthcare coverage.',
-        batchYear: '2025/2026',
-        isVerified: true,
-        featured: true,
-      },
-      {
-        position: 'Software Engineering Intern 2025',
-        company: 'Atlassian',
-        oneLiner: 'Build high-throughput microservices and collaborative UI primitives powering Jira & Confluence.',
-        location: 'Bengaluru, India (Remote Eligible)',
-        stipend: '₹1,30,000 / mo',
-        duration: 'Summer 2025 · 10-12 Weeks',
-        clicks: '2.4k clicks',
-        clickCount: 2450,
-        logoType: 'atlassian',
-        applyUrl: 'https://www.atlassian.com/company/careers/details/26273',
-        skills: ['Java / Kotlin', 'React', 'TypeScript'],
-        allSkills: ['Java / Kotlin', 'React', 'TypeScript', 'Distributed Systems', 'AWS', 'Microservices'],
-        about: 'Atlassian unleashes the potential of every team with products like Jira, Confluence, and Bitbucket.',
-        perks: 'Top-tier stipend, home office stipend, wellness budget, and direct mentorship from Principal Engineers.',
-        batchYear: '2025/2026',
-        isVerified: true,
-        featured: true,
-      },
-      {
-        position: 'Software Engineering Intern',
-        company: 'Google',
-        oneLiner: 'Engineer high-scale distributed systems, search infrastructure, and production AI models.',
-        location: 'Bengaluru / Hyderabad, India',
-        stipend: '₹1,15,000 / mo',
-        duration: 'Summer 2025 · 10-12 Weeks',
-        clicks: '4.1k clicks',
-        clickCount: 4120,
-        logoType: 'google',
-        applyUrl: 'https://careers.google.com/jobs/results/?q=Software%20Engineering%20Intern',
-        skills: ['C++ / Java', 'Python', 'DSA'],
-        allSkills: ['C++ / Java', 'Python', 'Algorithms', 'Distributed Systems', 'Machine Learning', 'Linux'],
-        about: 'Google software engineering interns work on core products that impact billions of people daily.',
-        perks: 'Free gourmet dining, relocation travel, housing assistance, and conversion opportunities for full-time SWE.',
-        batchYear: '2025/2026',
-        isVerified: true,
-        featured: true,
-      },
-      {
-        position: 'Software Engineer Intern (SDE)',
-        company: 'Microsoft',
-        oneLiner: 'Develop next-generation cloud services and enterprise tools on Azure & Windows Core.',
-        location: 'Bengaluru / Hyderabad, India',
-        stipend: '₹1,25,000 / mo',
-        duration: 'Summer 2025 · 8-12 Weeks',
-        clicks: '3.6k clicks',
-        clickCount: 3600,
-        logoType: 'microsoft',
-        applyUrl: 'https://careers.microsoft.com/us/en/search-results?keywords=Software%20Engineering%20Intern',
-        skills: ['C# / C++', 'Azure Cloud', 'Data Structures'],
-        allSkills: ['C# / C++', 'Azure Cloud', 'Data Structures', 'Full Stack', 'Distributed Computing', 'APIs'],
-        about: 'Microsoft Cloud and Enterprise engineering teams build planet-scale infrastructure.',
-        perks: 'Corporate housing allowance, premium health coverage, and mentorship from senior architects.',
-        batchYear: '2025/2026',
-        isVerified: true,
-        featured: true,
-      },
-      {
-        position: 'Amazon Software Development Engineer Intern',
-        company: 'Amazon',
-        oneLiner: 'Tackle complex algorithmic challenges in AWS Cloud, Prime Video, and Global Retail Logistics.',
-        location: 'Bengaluru / Hyderabad / Chennai, India',
-        stipend: '₹1,10,000 / mo',
-        duration: '6 Months · Spring/Summer 2026',
-        clicks: '3.9k clicks',
-        clickCount: 3910,
-        logoType: 'amazon',
-        applyUrl: 'https://amazon.jobs/en/jobs/early-careers-sde',
-        skills: ['Java', 'Python', 'Algorithms'],
-        allSkills: ['Java', 'Python', 'Algorithms', 'AWS', 'Object Oriented Design', 'NoSQL'],
-        about: 'Amazon engineers invent on behalf of millions of global customers and businesses every day.',
-        perks: 'PPO evaluation, commuter shuttle benefits, and access to internal tech conferences.',
-        batchYear: '2025/2026',
-        isVerified: true,
-        featured: true,
-      },
-      {
-        position: 'Uber Engineering Intern',
-        company: 'Uber',
-        oneLiner: 'Develop real-time driver dispatching, dynamic pricing algorithms, and microservices.',
-        location: 'Bengaluru / Hyderabad, India',
-        stipend: '₹1,35,000 / mo',
-        duration: 'Summer 2025 · 12 Weeks',
-        clicks: '2.8k clicks',
-        clickCount: 2840,
-        logoType: 'uber',
-        applyUrl: 'https://uber.com/careers/university',
-        skills: ['Go / Java', 'Distributed Systems', 'Kafka'],
-        allSkills: ['Go / Java', 'Distributed Systems', 'Kafka', 'gRPC', 'High Availability', 'PostgreSQL'],
-        about: 'Uber moves people and things in the physical world through cutting-edge engineering at scale.',
-        perks: 'Uber credits, ergonomic hardware stipend, and high PPO conversion rate.',
-        batchYear: '2025/2026',
-        isVerified: true,
-        featured: true,
-      },
-    ]);
-
-    // ──────────────────────────────────────────────────────────
     // 7. ATS Candidate Applications Lifecycle
     // ──────────────────────────────────────────────────────────
     console.log('📑 Seeding ATS applications and status pipelines...');
@@ -918,7 +1216,7 @@ export const seedDatabase = async () => {
     ]);
 
     // ──────────────────────────────────────────────────────────
-    // 8. Verification Requests (Badges & Credentials)
+    // 8. Verification Requests
     // ──────────────────────────────────────────────────────────
     console.log('🛡️ Seeding student credential verification requests...');
     await VerificationRequest.create([
@@ -949,25 +1247,27 @@ export const seedDatabase = async () => {
         reviewedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       },
       {
-        user: ananya._id,
-        role: 'student',
-        type: 'Skill Assessment Proof',
-        institution: 'IIT Madras',
-        department: 'Data Science & AI',
-        docName: 'TensorFlow_Developer_Certificate.pdf',
-        docUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&auto=format&fit=crop&q=80',
-        notes: 'Submitted score 96% in Advanced Machine Learning assessment.',
-        status: 'pending',
-      },
-      {
-        user: rohan._id,
+        user: reshma._id,
         role: 'student',
         type: 'College ID Document',
-        institution: 'NIT Calicut',
-        department: 'Computer Science',
-        docName: 'NITC_Student_ID.pdf',
+        institution: 'College of Engineering Trivandrum',
+        department: 'Industrial Engineering',
+        docName: 'CET_ID_Reshma.pdf',
         docUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80',
-        notes: 'Awaiting administrative verification.',
+        notes: 'Academic credential verification.',
+        status: 'approved',
+        reviewedBy: adminUser._id,
+        reviewedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+      {
+        user: rishi._id,
+        role: 'student',
+        type: 'Skill Assessment Proof',
+        institution: 'College of Engineering Trivandrum',
+        department: 'Industrial Engineering',
+        docName: 'Design_Specialist_Certificate.pdf',
+        docUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&auto=format&fit=crop&q=80',
+        notes: 'Submitted score 95% in Visual Design Systems.',
         status: 'pending',
       },
     ]);
@@ -1007,23 +1307,6 @@ export const seedDatabase = async () => {
       },
     ]);
 
-    const conv2 = await Conversation.create({
-      participants: [sidharth._id, websharkCompany._id],
-      lastMessage: 'Your Figma design systems portfolio is exemplary. We have sent the interview invite link.',
-      lastMessageAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      lastSender: websharkCompany._id,
-    });
-
-    await Message.create([
-      {
-        conversationId: conv2._id,
-        sender: websharkCompany._id,
-        receiver: sidharth._id,
-        text: 'Your Figma design systems portfolio is exemplary. We have sent the interview invite link.',
-        status: 'delivered',
-      },
-    ]);
-
     // ──────────────────────────────────────────────────────────
     // 10. Notifications
     // ──────────────────────────────────────────────────────────
@@ -1044,30 +1327,16 @@ export const seedDatabase = async () => {
         type: 'application',
       },
       {
-        user: joel._id,
-        title: 'Skill Verified',
-        desc: 'React & Next.js Architecture benchmark assessment passed with score 93%.',
-        unread: false,
-        type: 'verification',
-      },
-      {
         user: sidharth._id,
         title: 'Interview Scheduled',
         desc: 'Technical round scheduled with WebShark Web Services for UI/UX Design Intern.',
         unread: true,
         type: 'application',
       },
-      {
-        user: sidharth._id,
-        title: 'ID Verification Approved',
-        desc: 'Your College ID has been officially verified by the platform admin.',
-        unread: false,
-        type: 'verification',
-      },
     ]);
 
     // ──────────────────────────────────────────────────────────
-    // 11. Technical Skill Assessments & Submissions
+    // 11. Technical Skill Assessments
     // ──────────────────────────────────────────────────────────
     console.log('🧠 Seeding skill benchmark tests...');
     const reactAssessment = await SkillAssessment.create({
@@ -1093,67 +1362,6 @@ export const seedDatabase = async () => {
           explanation: 'RSC execute strictly on the server and transmit minimal JSON-stream representations, keeping heavy libraries out of the client JS bundle.',
           difficulty: 'intermediate',
         },
-        {
-          question: 'In Next.js App Router, which file defines the root UI wrapper shared across sub-routes?',
-          options: ['template.jsx', 'layout.jsx', 'page.jsx', 'loading.jsx'],
-          correctIndex: 1,
-          explanation: 'layout.jsx preserves state and remains mounted across route segment transitions.',
-          difficulty: 'beginner',
-        },
-        {
-          question: 'Which React hook should be preferred to defer non-urgent state transitions and maintain UI responsiveness?',
-          options: ['useMemo', 'useTransition', 'useImperativeHandle', 'useLayoutEffect'],
-          correctIndex: 1,
-          explanation: 'useTransition marks state updates as non-blocking transitions.',
-          difficulty: 'advanced',
-        },
-      ],
-    });
-
-    const nodeAssessment = await SkillAssessment.create({
-      title: 'Node.js & Express REST APIs',
-      category: 'Backend',
-      description: 'Design patterns, middleware security, rate limiting, and asynchronous stream handling in Node.js.',
-      durationMinutes: 20,
-      passingScore: 75,
-      reputationPoints: 15,
-      badgeName: 'Backend Systems Engineer',
-      totalTaken: 289,
-      averageScore: 79,
-      questions: [
-        {
-          question: 'Which middleware is essential to protect Express applications against common web vulnerabilities via security headers?',
-          options: ['cors', 'helmet', 'morgan', 'cookie-parser'],
-          correctIndex: 1,
-          explanation: 'Helmet sets security-centric HTTP response headers like CSP, HSTS, and X-Content-Type-Options.',
-          difficulty: 'beginner',
-        },
-      ],
-    });
-
-    await SkillAssessment.create({
-      title: 'UI/UX & Design Systems',
-      category: 'UI/UX Design',
-      description: 'Figma component hierarchies, atomic tokens, usability accessibility (WCAG), and responsive ergonomics.',
-      durationMinutes: 20,
-      passingScore: 75,
-      reputationPoints: 15,
-      badgeName: 'Product Design Architect',
-      totalTaken: 215,
-      averageScore: 88,
-      questions: [
-        {
-          question: 'What is the primary objective of atomic design methodology?',
-          options: [
-            'Modular, hierarchically composable UI design systems from atoms to pages',
-            'Writing faster CSS animations',
-            'Automating Figma file export',
-            'Minifying SVG vectors',
-          ],
-          correctIndex: 0,
-          explanation: 'Atomic design breaks interfaces down into atoms, molecules, organisms, templates, and pages.',
-          difficulty: 'intermediate',
-        },
       ],
     });
 
@@ -1163,22 +1371,12 @@ export const seedDatabase = async () => {
       skillName: reactAssessment.title,
       score: 93,
       passed: true,
-      totalQuestions: 3,
-      correctAnswers: 3,
-    });
-
-    await SkillSubmission.create({
-      student: abhay._id,
-      assessment: nodeAssessment._id,
-      skillName: nodeAssessment.title,
-      score: 85,
-      passed: true,
       totalQuestions: 1,
       correctAnswers: 1,
     });
 
     // ──────────────────────────────────────────────────────────
-    // 12. Bookmarks (Saved Internships & Talent)
+    // 12. Bookmarks (Saved Items)
     // ──────────────────────────────────────────────────────────
     console.log('📌 Seeding user bookmarks...');
     await Bookmark.create([
@@ -1186,11 +1384,6 @@ export const seedDatabase = async () => {
         user: joel._id,
         itemType: 'internship',
         internship: int1._id,
-      },
-      {
-        user: joel._id,
-        itemType: 'internship',
-        internship: int2._id,
       },
       {
         user: websharkCompany._id,
@@ -1201,11 +1394,6 @@ export const seedDatabase = async () => {
         user: websharkCompany._id,
         itemType: 'candidate',
         candidate: sidharth._id,
-      },
-      {
-        user: sidharth._id,
-        itemType: 'internship',
-        internship: int6._id,
       },
     ]);
 
@@ -1222,7 +1410,6 @@ export const seedDatabase = async () => {
       messages: await Message.countDocuments(),
       notifications: await Notification.countDocuments(),
       skillAssessments: await SkillAssessment.countDocuments(),
-      skillSubmissions: await SkillSubmission.countDocuments(),
       bookmarks: await Bookmark.countDocuments(),
     };
 
