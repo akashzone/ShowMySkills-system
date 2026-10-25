@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   GraduationCap,
@@ -22,155 +22,100 @@ import {
 
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-
-const kpiStats = [
-  {
-    title: "Registered Students",
-    value: "1,480",
-    change: "+12% this cohort",
-    isPositive: true,
-    icon: Users,
-    bg: "bg-blue-500/10 text-blue-600",
-  },
-  {
-    title: "Verified Skill Badges",
-    value: "942",
-    change: "+28% pass rate",
-    isPositive: true,
-    icon: Award,
-    bg: "bg-emerald-500/10 text-emerald-600",
-  },
-  {
-    title: "Placed / Active Offers",
-    value: "426",
-    change: "88.4% placement rate",
-    isPositive: true,
-    icon: Briefcase,
-    bg: "bg-teal-500/10 text-[#4B9C93]",
-  },
-  {
-    title: "Partner Recruiters",
-    value: "68",
-    change: "+14 visiting companies",
-    isPositive: true,
-    icon: Building2,
-    bg: "bg-purple-500/10 text-purple-600",
-  },
-];
-
-const departmentBreakdown = [
-  {
-    name: "Computer Science & Engineering",
-    students: 420,
-    placedRate: 94,
-    avgPackage: "8.4 LPA",
-    topSkill: "Full-Stack & React",
-    badgesEarned: 310,
-  },
-  {
-    name: "Information Technology",
-    students: 310,
-    placedRate: 91,
-    avgPackage: "7.8 LPA",
-    topSkill: "Python & Cloud DevOps",
-    badgesEarned: 245,
-  },
-  {
-    name: "Artificial Intelligence & Data Science",
-    students: 240,
-    placedRate: 96,
-    avgPackage: "9.2 LPA",
-    topSkill: "PyTorch & Data Eng",
-    badgesEarned: 215,
-  },
-  {
-    name: "Electronics & Communication",
-    students: 290,
-    placedRate: 82,
-    avgPackage: "6.5 LPA",
-    topSkill: "Embedded C & IoT",
-    badgesEarned: 112,
-  },
-  {
-    name: "Mechanical Engineering",
-    students: 220,
-    placedRate: 74,
-    avgPackage: "5.5 LPA",
-    topSkill: "CAD & Mechatronics",
-    badgesEarned: 60,
-  },
-];
-
-const upcomingDrives = [
-  {
-    company: "Google Cloud India",
-    logo: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=100&h=100&fit=crop",
-    role: "Cloud Engineering Intern",
-    date: "Oct 28, 2026",
-    eligibleBranches: "CSE, IT, AI&DS",
-    stipend: "₹85,000 / mo",
-    applicantsCount: 142,
-    status: "Shortlisting",
-  },
-  {
-    company: "WebShark Technologies",
-    logo: "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=100&h=100&fit=crop",
-    role: "Full-Stack Developer Intern",
-    date: "Nov 02, 2026",
-    eligibleBranches: "All Branches",
-    stipend: "₹35,000 / mo",
-    applicantsCount: 98,
-    status: "Tests Active",
-  },
-  {
-    company: "Razorpay Fintech",
-    logo: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=100&h=100&fit=crop",
-    role: "Backend Systems Intern",
-    date: "Nov 08, 2026",
-    eligibleBranches: "CSE, IT",
-    stipend: "₹65,000 / mo",
-    applicantsCount: 110,
-    status: "Upcoming",
-  },
-];
-
-const topPerformers = [
-  {
-    name: "Joel Fernandez",
-    roll: "2023-CS-042",
-    dept: "Computer Science",
-    cgpa: "9.4",
-    badges: ["React Verified", "Node.js REST", "System Design"],
-    offer: "Placed at Google Cloud (₹85k/mo)",
-  },
-  {
-    name: "Sidharth Sharma",
-    roll: "2023-AI-018",
-    dept: "AI & Data Science",
-    cgpa: "9.2",
-    badges: ["Python DSA", "PyTorch Specialist"],
-    offer: "Placed at WebShark (₹45k/mo)",
-  },
-  {
-    name: "Reshma Varma",
-    roll: "2023-IT-089",
-    dept: "Information Technology",
-    cgpa: "9.1",
-    badges: ["Full-Stack", "Docker & AWS"],
-    offer: "Interviewing (Razorpay)",
-  },
-  {
-    name: "Ananya Iyer",
-    roll: "2023-CS-104",
-    dept: "Computer Science",
-    cgpa: "8.9",
-    badges: ["TypeScript Core", "Next.js Pro"],
-    offer: "Offered (Xphia Tech)",
-  },
-];
+import { authService, peopleService, internshipService } from "@/services/apiClient";
 
 export default function CollegeDashboardPage() {
   const [selectedDept, setSelectedDept] = useState("All");
+  const [collegeName, setCollegeName] = useState("");
+  const [students, setStudents] = useState([]);
+  const [drives, setDrives] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    authService.getCurrentUser().then((user) => {
+      if (isMounted && user) {
+        setCollegeName(user.collegeProfile?.collegeName || user.name || "");
+      }
+    }).catch(() => {});
+
+    peopleService.list({ role: "student" }).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
+        setStudents(res);
+      }
+    }).catch(() => {});
+
+    internshipService.list({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
+        setDrives(res);
+      }
+    }).catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const partnerRecruitersCount = new Set(drives.map((d) => d.company).filter(Boolean)).size;
+  const verifiedBadgesCount = students.filter((s) => s.collegeIdVerified).length;
+
+  const kpiStats = [
+    {
+      title: "Registered Students",
+      value: students.length.toString(),
+      change: "Active campus accounts",
+      isPositive: true,
+      icon: Users,
+      bg: "bg-blue-500/10 text-blue-600",
+    },
+    {
+      title: "Verified Skill Badges",
+      value: verifiedBadgesCount.toString(),
+      change: "Verified evaluations",
+      isPositive: true,
+      icon: Award,
+      bg: "bg-emerald-500/10 text-emerald-600",
+    },
+    {
+      title: "Placed / Active Offers",
+      value: "0",
+      change: "Direct hiring conversions",
+      isPositive: true,
+      icon: Briefcase,
+      bg: "bg-teal-500/10 text-[#4B9C93]",
+    },
+    {
+      title: "Partner Recruiters",
+      value: partnerRecruitersCount.toString(),
+      change: "Active recruiting partners",
+      isPositive: true,
+      icon: Building2,
+      bg: "bg-purple-500/10 text-purple-600",
+    },
+  ];
+
+  // Group real students by department
+  const departmentBreakdown = (() => {
+    const map = {};
+    students.forEach((s) => {
+      const dept = s.branch || s.course || "General Engineering";
+      if (!map[dept]) {
+        map[dept] = { name: dept, students: 0, badgesEarned: 0 };
+      }
+      map[dept].students += 1;
+      if (s.collegeIdVerified) map[dept].badgesEarned += 1;
+    });
+    return Object.values(map);
+  })();
+
+  const topPerformers = students.slice(0, 4).map((s, idx) => ({
+    roll: s.rollNumber || `STU-${idx + 1}`,
+    cgpa: s.cgpa || "—",
+    name: s.name,
+    dept: s.branch || s.course || "Engineering",
+    badges: s.primarySkills?.slice(0, 2) || [],
+    offer: s.collegeIdVerified ? "Verified Candidate" : "Candidate Profile",
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -195,10 +140,10 @@ export default function CollegeDashboardPage() {
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                  Chaitanya Bharathi Institute of Technology
+                  {collegeName || "Institutional Placement Hub"}
                 </h1>
                 <p className="text-white/80 text-sm max-w-2xl leading-relaxed">
-                  Institutional placement dashboard tracking candidate skill benchmarks, verified cryptographic credentials, and campus hiring drives for the 2026-2027 academic session.
+                  Institutional placement dashboard tracking candidate skill benchmarks, verified cryptographic credentials, and campus hiring drives for the current academic session.
                 </p>
               </div>
 
@@ -279,46 +224,41 @@ export default function CollegeDashboardPage() {
               </div>
 
               <div className="space-y-5">
-                {departmentBreakdown.map((dept) => (
-                  <div
-                    key={dept.name}
-                    className="p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/50 transition-colors space-y-3"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-sm text-slate-900">
-                          {dept.name}
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          {dept.students} Enrolled • Avg Package: {dept.avgPackage}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-1 rounded-md bg-teal-50 text-[#2b8a78] text-xs font-semibold">
-                          Top: {dept.topSkill}
-                        </span>
-                        <span className="text-sm font-extrabold text-slate-900">
-                          {dept.placedRate}% Placed
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className="bg-[#4B9C93] h-2.5 rounded-full transition-all duration-500"
-                        style={{ width: `${dept.placedRate}%` }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-slate-400">
-                      <span>{dept.badgesEarned} Verified Badges Awarded</span>
-                      <span className="text-emerald-600 font-medium flex items-center gap-1">
-                        <TrendingUp className="w-3.5 h-3.5" /> High Placement Velocity
-                      </span>
-                    </div>
+                {departmentBreakdown.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    No departmental placement data recorded yet.
                   </div>
-                ))}
+                ) : (
+                  departmentBreakdown.map((dept) => (
+                    <div
+                      key={dept.name}
+                      className="p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/50 transition-colors space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h3 className="font-bold text-sm text-slate-900">
+                            {dept.name}
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            {dept.students} Students Enrolled
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-extrabold text-slate-900">
+                            {dept.badgesEarned} Verified
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span>{dept.badgesEarned} Verified Badges Awarded</span>
+                        <span className="text-emerald-600 font-medium flex items-center gap-1">
+                          <TrendingUp className="w-3.5 h-3.5" /> Department Active
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -338,42 +278,39 @@ export default function CollegeDashboardPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {upcomingDrives.map((drive) => (
-                    <div
-                      key={drive.company}
-                      className="p-4 rounded-xl border border-slate-100 bg-slate-50/60 space-y-2.5"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={drive.logo}
-                          alt={drive.company}
-                          className="w-10 h-10 rounded-lg object-cover border border-slate-200"
-                        />
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-xs text-slate-900 truncate">
-                            {drive.company}
-                          </h4>
-                          <p className="text-[11px] text-slate-500 truncate">
-                            {drive.role}
-                          </p>
+                  {drives.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-slate-400">
+                      No active campus placement drives scheduled yet.
+                    </div>
+                  ) : (
+                    drives.slice(0, 3).map((drive) => (
+                      <div
+                        key={drive._id || drive.id}
+                        className="p-4 rounded-xl border border-slate-100 bg-slate-50/60 space-y-2.5"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-[#4B9C93] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                            {drive.company?.slice(0, 2).toUpperCase() || "DR"}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-xs text-slate-900 truncate">
+                              {drive.company}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {drive.role || drive.title}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-slate-600 pt-1">
+                          <span>{drive.location || "Remote"}</span>
+                          <span className="font-semibold text-emerald-600">
+                            {drive.stipend || "Competitive"}
+                          </span>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between text-xs text-slate-600 pt-1">
-                        <span>Drive Date: {drive.date}</span>
-                        <span className="font-semibold text-emerald-600">
-                          {drive.stipend}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/60">
-                        <span>{drive.applicantsCount} student applicants</span>
-                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
-                          {drive.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -407,43 +344,48 @@ export default function CollegeDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {topPerformers.map((student) => (
-                <div
-                  key={student.roll}
-                  className="p-4 rounded-xl border border-slate-100 bg-slate-50/40 hover:border-slate-300 transition-all space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">
-                      {student.roll}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold text-xs">
-                      GPA {student.cgpa}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-900">
-                      {student.name}
-                    </h4>
-                    <p className="text-xs text-slate-500">{student.dept}</p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1">
-                    {student.badges.map((b) => (
-                      <span
-                        key={b}
-                        className="px-2 py-0.5 rounded-md bg-teal-50 text-[#2b8a78] text-[10px] font-semibold"
-                      >
-                        ✓ {b}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-200/60 text-xs font-semibold text-emerald-600">
-                    {student.offer}
-                  </div>
+              {topPerformers.length === 0 ? (
+                <div className="col-span-full py-8 text-center text-xs text-slate-400">
+                  No top student performers recorded yet.
                 </div>
-              ))}
+              ) : (
+                topPerformers.map((student) => (
+                  <div
+                    key={student.roll}
+                    className="p-4 rounded-xl border border-slate-100 bg-slate-50/40 hover:border-slate-300 transition-all space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">
+                        {student.roll}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900">
+                        {student.name}
+                      </h4>
+                      <p className="text-xs text-slate-500">{student.dept}</p>
+                    </div>
+
+                    {student.badges.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {student.badges.map((b) => (
+                          <span
+                            key={b}
+                            className="px-2 py-0.5 rounded-md bg-teal-50 text-[#2b8a78] text-[10px] font-semibold"
+                          >
+                            ✓ {b}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pt-2 border-t border-slate-200/60 text-xs font-semibold text-emerald-600">
+                      {student.offer}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

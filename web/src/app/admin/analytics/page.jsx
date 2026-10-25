@@ -22,11 +22,11 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { adminService } from "@/services/apiClient";
 
-const kpiStats = [
+const defaultKpis = [
   {
     title: "Registered Students",
-    value: "14,820",
-    change: "+18.4% from last month",
+    value: "0",
+    change: "Platform students",
     isPositive: true,
     icon: Users,
     bg: "bg-[#E6F7F3]",
@@ -34,8 +34,8 @@ const kpiStats = [
   },
   {
     title: "Partner Companies",
-    value: "348",
-    change: "+24 new this quarter",
+    value: "0",
+    change: "Registered partners",
     isPositive: true,
     icon: Building2,
     bg: "bg-blue-50",
@@ -43,8 +43,8 @@ const kpiStats = [
   },
   {
     title: "Active Internships",
-    value: "1,260",
-    change: "+12.1% active listings",
+    value: "0",
+    change: "Active listings",
     isPositive: true,
     icon: Briefcase,
     bg: "bg-purple-50",
@@ -52,8 +52,8 @@ const kpiStats = [
   },
   {
     title: "Applications Placed",
-    value: "8,940",
-    change: "76.4% shortlist rate",
+    value: "0",
+    change: "Shortlist rate",
     isPositive: true,
     icon: CheckCircle2,
     bg: "bg-emerald-50",
@@ -61,44 +61,26 @@ const kpiStats = [
   },
 ];
 
-const topSkills = [
-  { skill: "React & Next.js Architecture", demand: 94, count: "4,120 Candidates", color: "bg-[#4B9C93]" },
-  { skill: "Node.js & Express REST APIs", demand: 88, count: "3,890 Candidates", color: "bg-blue-500" },
-  { skill: "UI/UX & Design Systems (Figma)", demand: 82, count: "2,940 Candidates", color: "bg-purple-500" },
-  { skill: "Python & Machine Learning / AI", demand: 78, count: "2,650 Candidates", color: "bg-amber-500" },
-  { skill: "Cloud Native & DevOps (AWS/Docker)", demand: 71, count: "1,980 Candidates", color: "bg-emerald-500" },
-];
-
-const collegeLeaderboard = [
-  { rank: 1, name: "College of Engineering Trivandrum (CET)", verifiedStudents: 412, hires: 94, score: 96 },
-  { rank: 2, name: "Indian Institute of Technology Madras (IITM)", verifiedStudents: 388, hires: 112, score: 98 },
-  { rank: 3, name: "BITS Pilani", verifiedStudents: 310, hires: 86, score: 95 },
-  { rank: 4, name: "Chaitanya Bharathi Institute of Technology (CBIT)", verifiedStudents: 275, hires: 64, score: 91 },
-  { rank: 5, name: "National Institute of Technology Calicut (NITC)", verifiedStudents: 240, hires: 58, score: 90 },
-];
-
-const conversionFunnel = [
-  { stage: "Internship Discovery Views", count: "148,200", percent: "100%" },
-  { stage: "Applications Submitted", count: "38,400", percent: "25.9%" },
-  { stage: "Recruiter Shortlisted", count: "14,200", percent: "37.0%" },
-  { stage: "Interviews Scheduled", count: "6,150", percent: "43.3%" },
-  { stage: "Offers & PPOs Accepted", count: "3,420", percent: "55.6%" },
-];
+const skillColors = ["bg-[#4B9C93]", "bg-blue-500", "bg-purple-500", "bg-amber-500", "bg-emerald-500"];
 
 export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30d");
   const [exportNotice, setExportNotice] = useState(false);
-  const [statsData, setStatsData] = useState(kpiStats);
+  const [statsData, setStatsData] = useState(defaultKpis);
+  const [topSkills, setTopSkills] = useState([]);
+  const [collegeLeaderboard, setCollegeLeaderboard] = useState([]);
+  const [conversionFunnel, setConversionFunnel] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
-    adminService.getOverview().then((overview) => {
-      if (isMounted && overview) {
+    adminService.getAnalytics().then((analytics) => {
+      if (!isMounted || !analytics) return;
+      if (analytics.kpi) {
         setStatsData([
           {
             title: "Registered Students",
-            value: (overview.totalStudents ?? 0).toLocaleString(),
-            change: "+18.4% from last month",
+            value: (analytics.kpi.registeredStudents ?? 0).toLocaleString(),
+            change: "Platform students",
             isPositive: true,
             icon: Users,
             bg: "bg-[#E6F7F3]",
@@ -106,8 +88,8 @@ export default function AdminAnalyticsPage() {
           },
           {
             title: "Partner Companies",
-            value: (overview.totalCompanies ?? 0).toLocaleString(),
-            change: "+24 new this quarter",
+            value: (analytics.kpi.partnerCompanies ?? 0).toLocaleString(),
+            change: "Registered partners",
             isPositive: true,
             icon: Building2,
             bg: "bg-blue-50",
@@ -115,8 +97,8 @@ export default function AdminAnalyticsPage() {
           },
           {
             title: "Active Internships",
-            value: (overview.totalInternships ?? 0).toLocaleString(),
-            change: "+12.1% active listings",
+            value: (analytics.kpi.activeInternships ?? 0).toLocaleString(),
+            change: "Active listings",
             isPositive: true,
             icon: Briefcase,
             bg: "bg-purple-50",
@@ -124,8 +106,8 @@ export default function AdminAnalyticsPage() {
           },
           {
             title: "Applications Placed",
-            value: (overview.totalApplications ?? 0).toLocaleString(),
-            change: "76.4% shortlist rate",
+            value: (analytics.kpi.totalApplications ?? 0).toLocaleString(),
+            change: `${analytics.kpi.shortlistRate || "0%"} shortlist rate`,
             isPositive: true,
             icon: CheckCircle2,
             bg: "bg-emerald-50",
@@ -133,7 +115,22 @@ export default function AdminAnalyticsPage() {
           },
         ]);
       }
-    });
+      if (Array.isArray(analytics.topSkills)) {
+        setTopSkills(
+          analytics.topSkills.map((s, i) => ({
+            ...s,
+            color: skillColors[i % skillColors.length],
+          }))
+        );
+      }
+      if (Array.isArray(analytics.funnel)) {
+        setConversionFunnel(analytics.funnel);
+      }
+      if (Array.isArray(analytics.collegeLeaderboard)) {
+        setCollegeLeaderboard(analytics.collegeLeaderboard);
+      }
+    }).catch(() => {});
+
     return () => {
       isMounted = false;
     };
@@ -244,20 +241,26 @@ export default function AdminAnalyticsPage() {
               </div>
 
               <div className="space-y-4 pt-1">
-                {topSkills.map((item, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-gray-800">{item.skill}</span>
-                      <span className="text-gray-500">{item.count}</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${item.color} rounded-full transition-all duration-500`}
-                        style={{ width: `${item.demand}%` }}
-                      />
-                    </div>
+                {topSkills.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-gray-400">
+                    No campus skill telemetry recorded yet.
                   </div>
-                ))}
+                ) : (
+                  topSkills.map((item, idx) => (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <span className="text-gray-800">{item.skill}</span>
+                        <span className="text-gray-500">{item.count}</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                          style={{ width: `${item.demand}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -271,23 +274,29 @@ export default function AdminAnalyticsPage() {
               </div>
 
               <div className="space-y-3 pt-1">
-                {conversionFunnel.map((step, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-[#E6F7F3] text-[#0D9488] font-bold text-xs flex items-center justify-center">
-                        {idx + 1}
-                      </span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-800">{step.stage}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-extrabold text-xs sm:text-sm text-gray-900">{step.count}</span>
-                      <span className="text-[11px] text-gray-400 block font-medium">({step.percent})</span>
-                    </div>
+                {conversionFunnel.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-gray-400">
+                    No application funnel conversions recorded yet.
                   </div>
-                ))}
+                ) : (
+                  conversionFunnel.map((step, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-[#E6F7F3] text-[#0D9488] font-bold text-xs flex items-center justify-center">
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs sm:text-sm font-semibold text-gray-800">{step.stage}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-extrabold text-xs sm:text-sm text-gray-900">{step.count}</span>
+                        <span className="text-[11px] text-gray-400 block font-medium">({step.percent})</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -316,49 +325,57 @@ export default function AdminAnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 text-xs sm:text-sm">
-                  {collegeLeaderboard.map((col) => (
-                    <tr key={col.rank} className="hover:bg-gray-50/70 transition-colors">
-                      <td className="py-3.5 px-3">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
-                              col.rank === 1
-                                ? "bg-amber-100 text-amber-800 font-extrabold"
-                                : col.rank === 2
-                                ? "bg-slate-200 text-slate-800"
-                                : col.rank === 3
-                                ? "bg-amber-50 text-amber-900"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            #{col.rank}
-                          </span>
-                          <span className="font-bold text-gray-900">{col.name}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-3 font-semibold text-gray-700">
-                        {col.verifiedStudents} Students
-                      </td>
-
-                      <td className="py-3.5 px-3 font-semibold text-emerald-600">
-                        {col.hires} Offers
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <span className="px-2.5 py-1 rounded-full bg-teal-50 text-[#0D9488] font-bold text-xs">
-                          {col.score} / 100
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-3 text-right">
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          Accredited Partner
-                        </span>
+                  {collegeLeaderboard.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center text-xs text-gray-400">
+                        No institutional placement records found.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    collegeLeaderboard.map((col) => (
+                      <tr key={col.rank} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
+                                col.rank === 1
+                                  ? "bg-amber-100 text-amber-800 font-extrabold"
+                                  : col.rank === 2
+                                  ? "bg-slate-200 text-slate-800"
+                                  : col.rank === 3
+                                  ? "bg-amber-50 text-amber-900"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              #{col.rank}
+                            </span>
+                            <span className="font-bold text-gray-900">{col.name}</span>
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-3 font-semibold text-gray-700">
+                          {col.verifiedStudents} Students
+                        </td>
+
+                        <td className="py-3.5 px-3 font-semibold text-emerald-600">
+                          {col.hires} Offers
+                        </td>
+
+                        <td className="py-3.5 px-3">
+                          <span className="px-2.5 py-1 rounded-full bg-teal-50 text-[#0D9488] font-bold text-xs">
+                            {col.score} / 100
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-3 text-right">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Accredited Partner
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

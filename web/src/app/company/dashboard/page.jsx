@@ -16,38 +16,39 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-import { applicationService } from "@/services/apiClient";
-
-const stats = [
-  { label: "Active Postings", value: "6", change: "+2 this month", icon: Briefcase, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
-  { label: "Total Applicants", value: "184", change: "+34 new today", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "Under Review", value: "42", change: "18 pending review", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-  { label: "Interviews Scheduled", value: "14", change: "4 this week", icon: Calendar, color: "text-purple-600", bg: "bg-purple-50" },
-];
+import { applicationService, internshipService } from "@/services/apiClient";
 
 export default function CompanyDashboardPage() {
   const [recentApplicants, setRecentApplicants] = useState([]);
+  const [activePostingsCount, setActivePostingsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
+
+    internshipService.list({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
+        setActivePostingsCount(res.length);
+      }
+    }).catch(() => {});
+
     applicationService.getCompanyApplications({}).then((res) => {
       if (isMounted && res && Array.isArray(res)) {
         const mapped = res.map((app) => ({
           id: app._id || app.id,
-          name: app.candidate?.name || app.candidateName || "Student Candidate",
-          role: app.internship?.role || app.internship?.title || "Internship Role",
-          college: app.candidate?.college || "College of Engineering",
-          score: app.score || 90,
+          name: app.candidate?.name || app.candidateName || "Candidate",
+          role: app.internship?.role || app.internship?.title || "Internship Opening",
+          college: app.candidate?.college || "",
+          score: app.score ?? app.candidate?.reputationScore ?? 0,
           status: app.status ? (app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()) : "Applied",
           statusColor: app.status === "Shortlisted" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
                        app.status === "Interviewing" ? "bg-purple-50 text-purple-700 border-purple-200" :
                        app.status === "Reviewing" ? "bg-amber-50 text-amber-700 border-amber-200" :
                        "bg-blue-50 text-blue-700 border-blue-200",
-          skills: app.candidate?.primarySkills || (app.candidate?.skills ? app.candidate.skills.map(s => typeof s === "string" ? s : s.name) : ["React", "TypeScript"]),
+          skills: app.candidate?.primarySkills || (app.candidate?.skills ? app.candidate.skills.map(s => typeof s === "string" ? s : s.name) : []),
           appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently",
-          avatar: app.candidate?.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(app.candidate?.name || "Student")}&background=4B9C93&color=fff&size=180`,
+          avatar: app.candidate?.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(app.candidate?.name || "Candidate")}&background=4B9C93&color=fff&size=180`,
         }));
         setRecentApplicants(mapped);
       }
@@ -94,27 +95,40 @@ export default function CompanyDashboardPage() {
           </div>
 
           {/* Metric Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {stats.map(({ label, value, change, icon: Icon, color, bg }) => (
-              <div
-                key={label}
-                className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex flex-col justify-between"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    {label}
-                  </span>
-                  <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
-                    <Icon className="w-5 h-5" />
+          {(() => {
+            const underReviewCount = recentApplicants.filter((a) => a.status === "Reviewing" || a.status === "Applied").length;
+            const interviewingCount = recentApplicants.filter((a) => a.status === "Interviewing").length;
+            const dynamicStats = [
+              { label: "Active Postings", value: activePostingsCount.toString(), change: "Open opportunities", icon: Briefcase, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
+              { label: "Total Applicants", value: recentApplicants.length.toString(), change: "Direct submissions", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Under Review", value: underReviewCount.toString(), change: "Pending evaluation", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+              { label: "Interviews Scheduled", value: interviewingCount.toString(), change: "Candidate discussions", icon: Calendar, color: "text-purple-600", bg: "bg-purple-50" },
+            ];
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {dynamicStats.map(({ label, value, change, icon: Icon, color, bg }) => (
+                  <div
+                    key={label}
+                    className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        {label}
+                      </span>
+                      <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-extrabold text-gray-900">{value}</div>
+                      <div className="text-xs text-gray-400 mt-1">{change}</div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-extrabold text-gray-900">{value}</div>
-                  <div className="text-xs text-gray-400 mt-1">{change}</div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* Recent Candidate Applications */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden">

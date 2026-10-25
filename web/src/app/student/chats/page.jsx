@@ -63,22 +63,14 @@ function ChatsContent() {
         const newThread = {
           id: numId,
           name: decodeURIComponent(paramUserName),
-          role: "Student Creator",
-          college: "College of Engineering Trivandrum",
-          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-          score: 50,
-          online: true,
+          role: "Candidate",
+          college: "",
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(decodeURIComponent(paramUserName))}&background=4B9C93&color=fff&size=100`,
+          score: 0,
+          online: false,
           lastTime: "Just now",
           unread: 0,
-          messages: [
-            {
-              id: "intro-msg",
-              sender: "them",
-              text: `Hi! Thanks for reaching out. Excited to chat and collaborate on ShowMySkills!`,
-              time: "Just now",
-              status: "delivered",
-            },
-          ],
+          messages: [],
         };
         setConversations((prev) => [newThread, ...prev]);
         setActiveChatId(numId);
@@ -124,40 +116,6 @@ function ChatsContent() {
     chatService.sendMessage(text, activeChat.id, activeChat.conversationId || activeChat.id);
 
     setInputText("");
-
-    // Simulate realistic responsive reply from peer student after 1.2s
-    setIsTypingReply(true);
-    setTimeout(() => {
-      setIsTypingReply(false);
-      const replies = [
-        "That sounds awesome! Let's stay in touch.",
-        "Got it! Thanks for reaching out, happy to share more details about my work.",
-        "Awesome! I'm reviewing our repo today, let's definitely collaborate.",
-        "Great idea! Let me know when you'd like to sync up.",
-      ];
-      const randomReply = replies[Math.floor(Math.random() * replies.length)];
-
-      const replyMsg = {
-        id: `reply-${Date.now()}`,
-        sender: "them",
-        text: randomReply,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        status: "delivered",
-      };
-
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (c.id === activeChat.id) {
-            return {
-              ...c,
-              lastTime: "Just now",
-              messages: [...c.messages, replyMsg],
-            };
-          }
-          return c;
-        })
-      );
-    }, 1300);
   };
 
   const filteredConversations = conversations.filter((c) =>

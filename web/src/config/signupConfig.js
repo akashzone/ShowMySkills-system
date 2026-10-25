@@ -27,10 +27,10 @@ export const signupConfig = {
     title: "College Sign up",
     subtitle: "Improve placement outcomes with showmyskills",
     fields: [
-      { name: "collegeName", label: "College Name", type: "text", placeholder: "e.g. CBIT College" },
+      { name: "collegeName", label: "College Name", type: "text", placeholder: "e.g. National Institute of Technology" },
       { name: "email", label: "College Email Address", type: "email", placeholder: "you@college.edu" },
       { name: "phone", label: "Phone Number", type: "tel", placeholder: "+91 98765 43210" },
-      { name: "website", label: "Website Link", type: "url", placeholder: "e.g. https://cbitcollege.com" },
+      { name: "website", label: "Website Link", type: "url", placeholder: "e.g. https://university.edu" },
       { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
       { name: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "••••••••" },
     ],

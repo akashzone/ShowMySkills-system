@@ -19,13 +19,6 @@ import DashboardHeader from "@/components/DashboardHeader";
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
 import { adminService } from "@/services/apiClient";
 
-const kpis = [
-  { label: "Registered Students", value: "12,480", status: "+480 this week", icon: Users, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
-  { label: "Partner Companies", value: "340", status: "24 awaiting approval", icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "Active Internships", value: "892", status: "98% verified", icon: Briefcase, color: "text-purple-600", bg: "bg-purple-50" },
-  { label: "Skills Verified", value: "4,620", status: "+120 today", icon: CheckCircle, color: "text-amber-600", bg: "bg-amber-50" },
-];
-
 export default function AdminDashboardPage() {
   const [verifications, setVerifications] = useState([]);
   const [adminApplications, setAdminApplications] = useState([]);
@@ -34,20 +27,32 @@ export default function AdminDashboardPage() {
   const [studentSearch, setStudentSearch] = useState("");
   const [tagToast, setTagToast] = useState("");
   const [adminActionToast, setAdminActionToast] = useState("");
+  const [overview, setOverview] = useState({
+    totalStudents: 0,
+    totalCompanies: 0,
+    totalInternships: 0,
+    totalApplications: 0,
+  });
 
   useEffect(() => {
     let isMounted = true;
+    adminService.getOverview().then((res) => {
+      if (isMounted && res) {
+        setOverview(res);
+      }
+    }).catch(() => {});
+
     adminService.getUsers({ role: "student" }).then((res) => {
       if (isMounted && res && Array.isArray(res)) {
         const mapped = res.map((u, i) => ({
           id: u._id || u.id || i + 1,
           name: u.name,
           email: u.email,
-          college: u.college || "College of Engineering Trivandrum",
-          department: u.branch || u.course || "Industrial Engineering",
-          tag: u.roleTag || "Maintainer",
-          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=4B9C93&color=fff&size=180`,
-          score: u.reputationScore ?? u.score ?? 70,
+          college: u.college || "",
+          department: u.branch || u.course || "",
+          tag: u.roleTag || "Student",
+          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Student")}&background=4B9C93&color=fff&size=180`,
+          score: u.reputationScore ?? u.score ?? 0,
         }));
         setStudents(mapped);
       }
@@ -162,27 +167,38 @@ export default function AdminDashboardPage() {
           )}
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {kpis.map(({ label, value, status, icon: Icon, color, bg }) => (
-              <div
-                key={label}
-                className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex flex-col justify-between"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    {label}
-                  </span>
-                  <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
-                    <Icon className="w-5 h-5" />
+          {(() => {
+            const kpiList = [
+              { label: "Registered Students", value: (overview.totalStudents ?? 0).toLocaleString(), status: "Live campus students", icon: Users, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
+              { label: "Partner Companies", value: (overview.totalCompanies ?? 0).toLocaleString(), status: "Registered employers", icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Active Internships", value: (overview.totalInternships ?? 0).toLocaleString(), status: "Open positions", icon: Briefcase, color: "text-purple-600", bg: "bg-purple-50" },
+              { label: "Applications Tracked", value: (overview.totalApplications ?? 0).toLocaleString(), status: "Total student submissions", icon: CheckCircle, color: "text-amber-600", bg: "bg-amber-50" },
+            ];
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {kpiList.map(({ label, value, status, icon: Icon, color, bg }) => (
+                  <div
+                    key={label}
+                    className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        {label}
+                      </span>
+                      <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-extrabold text-gray-900">{value}</div>
+                      <div className="text-xs text-emerald-600 font-medium mt-1">{status}</div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-extrabold text-gray-900">{value}</div>
-                  <div className="text-xs text-emerald-600 font-medium mt-1">{status}</div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* ──── Admin Access Requests Review (Core Admin Authorization) ──── */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden mb-8">

@@ -33,13 +33,13 @@ export default function AdminUsersPage() {
           id: u._id || u.id || i + 1,
           name: u.name,
           email: u.email,
-          college: u.college || "College of Engineering Trivandrum",
-          department: u.branch || u.course || "Industrial Engineering",
-          tag: u.roleTag || "Maintainer",
-          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=4B9C93&color=fff&size=180`,
-          score: u.reputationScore ?? u.score ?? 70,
+          college: u.college || u.collegeName || "N/A",
+          department: u.branch || u.course || u.department || "General",
+          tag: u.roleTag || "Regular",
+          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "User")}&background=4B9C93&color=fff&size=180`,
+          score: u.reputationScore ?? u.score ?? 0,
           status: "Active",
-          joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Aug 2025",
+          joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Recently",
         }));
         setStudents(mapped);
       }
@@ -207,7 +207,14 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filtered.map((st) => (
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-gray-400">
+                        No students found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((st) => (
                     <tr key={st.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
@@ -258,8 +265,9 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </div>

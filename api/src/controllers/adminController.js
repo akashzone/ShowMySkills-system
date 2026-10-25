@@ -257,6 +257,52 @@ export const adminController = {
         Application.countDocuments(),
       ]);
 
+      const [shortlistedCount, interviewCount, acceptedCount, skillsAgg, collegeAgg] = await Promise.all([
+        Application.countDocuments({ status: { $in: ['shortlisted', 'Shortlisted'] } }),
+        Application.countDocuments({ status: { $in: ['interviewing', 'Interviewing'] } }),
+        Application.countDocuments({ status: { $in: ['accepted', 'Offered', 'hired', 'Hired'] } }),
+        User.aggregate([
+          { $match: { role: 'student', primarySkills: { $exists: true, $ne: [] } } },
+          { $unwind: '$primarySkills' },
+          { $group: { _id: '$primarySkills', count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+          { $limit: 5 },
+        ]),
+        User.aggregate([
+          { $match: { role: 'student', college: { $exists: true, $ne: '' } } },
+          { $group: { _id: '$college', verifiedStudents: { $sum: 1 }, avgScore: { $avg: '$reputationScore' } } },
+          { $sort: { verifiedStudents: -1 } },
+          { $limit: 5 },
+        ]),
+      ]);
+
+      const shortlistRate = totalApplications > 0
+        ? `${Math.round((shortlistedCount / totalApplications) * 100)}%`
+        : '0%';
+
+      const topSkills = skillsAgg.map((s) => ({
+        skill: s._id,
+        demand: Math.min(100, Math.round((s.count / (studentCount || 1)) * 100)),
+        count: `${s.count} Candidates`,
+      }));
+
+      const collegeLeaderboard = collegeAgg.map((c, idx) => ({
+        rank: idx + 1,
+        name: c._id,
+        verifiedStudents: c.verifiedStudents,
+        hires: 0,
+        score: Math.round(c.avgScore || 0),
+      }));
+
+      const funnel = totalApplications > 0
+        ? [
+            { stage: 'Applications Submitted', count: totalApplications, percent: '100%' },
+            { stage: 'Recruiter Shortlisted', count: shortlistedCount, percent: `${Math.round((shortlistedCount / totalApplications) * 100)}%` },
+            { stage: 'Interviews Scheduled', count: interviewCount, percent: `${Math.round((interviewCount / totalApplications) * 100)}%` },
+            { stage: 'Offers & PPOs Accepted', count: acceptedCount, percent: `${Math.round((acceptedCount / totalApplications) * 100)}%` },
+          ]
+        : [];
+
       res.json({
         success: true,
         data: {
@@ -265,29 +311,11 @@ export const adminController = {
             partnerCompanies: companyCount,
             activeInternships,
             totalApplications,
-            shortlistRate: '76.4%',
+            shortlistRate,
           },
-          topSkills: [
-            { skill: 'React & Next.js Architecture', demand: 94, count: '4,120 Candidates' },
-            { skill: 'Node.js & Express REST APIs', demand: 88, count: '3,890 Candidates' },
-            { skill: 'UI/UX & Design Systems (Figma)', demand: 82, count: '2,940 Candidates' },
-            { skill: 'Python & Machine Learning / AI', demand: 78, count: '2,650 Candidates' },
-            { skill: 'Cloud Native & DevOps (AWS/Docker)', demand: 71, count: '1,980 Candidates' },
-          ],
-          funnel: [
-            { stage: 'Internship Discovery Views', count: 148200, percent: '100%' },
-            { stage: 'Applications Submitted', count: totalApplications || 38400, percent: '25.9%' },
-            { stage: 'Recruiter Shortlisted', count: 14200, percent: '37.0%' },
-            { stage: 'Interviews Scheduled', count: 6150, percent: '43.3%' },
-            { stage: 'Offers & PPOs Accepted', count: 3420, percent: '55.6%' },
-          ],
-          collegeLeaderboard: [
-            { rank: 1, name: 'College of Engineering Trivandrum (CET)', verifiedStudents: 412, hires: 94, score: 96 },
-            { rank: 2, name: 'Indian Institute of Technology Madras (IITM)', verifiedStudents: 388, hires: 112, score: 98 },
-            { rank: 3, name: 'BITS Pilani', verifiedStudents: 310, hires: 86, score: 95 },
-            { rank: 4, name: 'Chaitanya Bharathi Institute of Technology (CBIT)', verifiedStudents: 275, hires: 64, score: 91 },
-            { rank: 5, name: 'National Institute of Technology Calicut (NITC)', verifiedStudents: 240, hires: 58, score: 90 },
-          ],
+          topSkills,
+          funnel,
+          collegeLeaderboard,
         },
       });
     } catch (error) {

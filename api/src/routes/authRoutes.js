@@ -131,7 +131,7 @@ router.post('/login', authRateLimiter, validateLogin, authController.login);
  *               college:
  *                 type: string
  *                 description: Required for student accounts
- *                 example: 'College of Engineering Trivandrum (CET)'
+ *                 example: 'National Institute of Technology'
  *               graduationYear:
  *                 type: integer
  *                 description: Required for student accounts
@@ -139,7 +139,7 @@ router.post('/login', authRateLimiter, validateLogin, authController.login);
  *               collegeId:
  *                 type: string
  *                 description: Required for student accounts
- *                 example: 'CET-2022-CS-042'
+ *                 example: 'UNI-2022-CS-042'
  *               collegeIdFile:
  *                 type: string
  *                 format: binary
@@ -175,13 +175,13 @@ router.post('/login', authRateLimiter, validateLogin, authController.login);
  *                 example: 'student'
  *               college:
  *                 type: string
- *                 example: 'College of Engineering Trivandrum (CET)'
+ *                 example: 'National Institute of Technology'
  *               graduationYear:
  *                 type: integer
  *                 example: 2026
  *               collegeId:
  *                 type: string
- *                 example: 'CET-2022-CS-042'
+ *                 example: 'UNI-2022-CS-042'
  *     responses:
  *       201:
  *         description: Account created successfully; OTP dispatched to email

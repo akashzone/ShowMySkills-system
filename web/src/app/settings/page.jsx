@@ -33,29 +33,34 @@ export default function SettingsPage() {
 
   // Profile Form state
   const [profile, setProfile] = useState({
-    name: "CBIT Student",
-    headline: "Aspiring Full Stack Engineer & Open Source Contributor",
-    college: "Chaitanya Bharathi Institute of Technology (CBIT)",
-    department: "Computer Science & Engineering",
-    gradYear: "2026",
-    email: "student@cbit.ac.in",
-    phone: "+91 98480 12345",
-    bio: "Passionate engineer learning distributed systems, Next.js, and cloud native architectures. Actively seeking early career and summer 2026 internships.",
-    github: "https://github.com/cbit-student",
-    linkedin: "https://linkedin.com/in/cbit-student",
+    name: "",
+    headline: "",
+    college: "",
+    department: "",
+    gradYear: "",
+    email: "",
+    phone: "",
+    bio: "",
+    github: "",
+    linkedin: "",
   });
 
   useEffect(() => {
     let isMounted = true;
-    authService.getCurrentUser(null).then((user) => {
+    authService.getCurrentUser().then((user) => {
       if (isMounted && user) {
         setProfile((prev) => ({
           ...prev,
-          name: user.name || prev.name,
-          email: user.email || prev.email,
-          college: user.college || prev.college,
-          headline: user.headline || prev.headline,
-          bio: user.bio || prev.bio,
+          name: user.name || "",
+          email: user.email || "",
+          college: user.college || user.collegeProfile?.collegeName || "",
+          department: user.branch || user.course || "",
+          gradYear: user.graduationYear ? user.graduationYear.toString() : "",
+          headline: user.headline || "",
+          phone: user.phone || "",
+          bio: user.bio || "",
+          github: user.github || "",
+          linkedin: user.linkedin || "",
         }));
       }
     });

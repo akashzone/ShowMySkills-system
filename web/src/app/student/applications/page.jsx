@@ -63,7 +63,7 @@ export default function StudentApplicationsPage() {
       if (isMounted && res && Array.isArray(res)) {
         const mapped = res.map((app) => ({
           id: app._id || app.id,
-          internshipId: app.internship?._id || app.internshipId || "int-1",
+          internshipId: app.internship?._id || app.internshipId || "",
           companyName: app.internship?.company || app.companyName || "Partner Company",
           role: app.internship?.role || app.role || "Internship Role",
           location: app.internship?.location || app.location || "Remote",
@@ -76,10 +76,10 @@ export default function StudentApplicationsPage() {
             ? app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()
             : "Applied",
           stageNotes: app.notes || "Application submitted successfully.",
-          recruiterName: "Campus Recruiter",
+          recruiterName: app.internship?.postedBy?.name || "Hiring Team",
           recruiterRole: "Talent Acquisition",
-          skillsMatched: app.internship?.skills || ["React", "Node.js"],
-          logo: app.internship?.companyLogo || "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=100&h=100&fit=crop",
+          skillsMatched: app.internship?.skills || [],
+          logo: app.internship?.companyLogo || "",
         }));
         setApplications(mapped);
       }

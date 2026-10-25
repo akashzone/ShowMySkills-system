@@ -35,21 +35,21 @@ export default function CollegeStudentsPage() {
     setLoading(true);
     peopleService.list({ role: "student" }).then((res) => {
       if (isMounted && res && Array.isArray(res)) {
-        const mapped = res.map((u, i) => ({
-          id: u._id || u.id || `stu-${i + 1}`,
+        const mapped = res.map((u) => ({
+          id: u._id || u.id || "",
           name: u.name,
           email: u.email,
-          rollNumber: u.rollNumber || `2024-ENG-0${i + 1}`,
-          department: u.branch || u.course || "Industrial Engineering",
-          graduationYear: u.graduationYear || 2026,
-          cgpa: u.cgpa || "9.0",
+          rollNumber: u.rollNumber || "N/A",
+          department: u.branch || u.course || u.department || "General",
+          graduationYear: u.graduationYear || new Date().getFullYear(),
+          cgpa: u.cgpa ? String(u.cgpa) : "N/A",
           idVerificationStatus: u.collegeIdVerified ? "verified" : "pending",
-          placementStatus: "Seeking",
-          company: null,
-          roleTag: u.roleTag || "Maintainer",
-          skills: u.primarySkills || (u.skills ? u.skills.map((s) => typeof s === "string" ? s : s.name) : ["React", "TypeScript"]),
-          badgesCount: 3,
-          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=4B9C93&color=fff&size=100`,
+          placementStatus: u.placementStatus || "Seeking",
+          company: u.company || null,
+          roleTag: u.roleTag || "Student",
+          skills: u.primarySkills || (u.skills ? u.skills.map((s) => typeof s === "string" ? s : s.name) : []),
+          badgesCount: u.badgesCount || 0,
+          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Student")}&background=4B9C93&color=fff&size=100`,
         }));
         setStudents(mapped);
       }

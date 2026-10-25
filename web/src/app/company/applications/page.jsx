@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-import { apiRequest, applicationService, internshipService } from "@/services/apiClient";
+import { apiRequest, applicationService, internshipService, authService } from "@/services/apiClient";
 
 const statusTabs = ["All", "Applied", "Reviewing", "Shortlisted", "Interviewing", "Hired", "Rejected"];
 
@@ -41,6 +41,7 @@ function CompanyApplicationsContent() {
 
   const [companyInternships, setCompanyInternships] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedInternshipId, setSelectedInternshipId] = useState("all");
   const [selectedTab, setSelectedTab] = useState("All");
@@ -55,9 +56,9 @@ function CompanyApplicationsContent() {
     department: "Engineering",
     mode: "remote",
     location: "Remote",
-    stipend: "₹25,000 / month",
+    stipend: "",
     duration: "3 Months",
-    skills: "React, Node.js, TypeScript",
+    skills: "",
     description: "",
   });
   const [postingLoading, setPostingLoading] = useState(false);
@@ -66,6 +67,13 @@ function CompanyApplicationsContent() {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
+
+    authService.getCurrentUser().then((user) => {
+      if (isMounted && user) {
+        setCurrentUser(user);
+      }
+    }).catch(() => {});
+
     applicationService.getCompanyApplications({}).then((res) => {
       if (isMounted && res && Array.isArray(res)) {
         setApplications(res);
@@ -108,9 +116,9 @@ function CompanyApplicationsContent() {
     const matchesTab =
       selectedTab === "All" || app.status.toLowerCase() === selectedTab.toLowerCase();
     const matchesSearch =
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.college.toLowerCase().includes(searchQuery.toLowerCase());
+      app.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.college?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesInternship && matchesTab && matchesSearch;
   });
 
@@ -151,16 +159,16 @@ function CompanyApplicationsContent() {
     const newInternshipObj = {
       id: `int-${Date.now()}`,
       role: postForm.role.trim(),
-      company: "WebShark Web Services",
+      company: currentUser?.companyProfile?.companyName || currentUser?.name || "Partner Company",
       location: postForm.location || "Remote",
       mode: postForm.mode,
-      stipend: postForm.stipend || "₹25,000 / month",
+      stipend: postForm.stipend || "Competitive Stipend",
       duration: postForm.duration || "3 Months",
       department: postForm.department,
       skills: skillsArray,
       status: "active",
       postedDate: "Just now",
-      description: postForm.description || "Exciting internship opportunity building modern applications.",
+      description: postForm.description || "Internship opening building modern applications.",
     };
 
     try {

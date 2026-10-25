@@ -50,16 +50,16 @@ export default function StudentPeoplePage() {
           return {
             id: u._id || u.id || i + 1,
             name: u.name,
-            tag: u.roleTag || "Maintainer",
-            role: u.headline || "Developer",
-            college: u.college || "College of Engineering Trivandrum",
-            department: u.branch || u.course || "Industrial Engineering",
-            location: u.location || "Trivandrum",
-            score: u.reputationScore ?? u.score ?? 70,
-            avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=4B9C93&color=fff&size=180`,
+            tag: u.roleTag || "Student",
+            role: u.headline || "Student Developer",
+            college: u.college || "",
+            department: u.branch || u.course || "",
+            location: u.location || "",
+            score: u.reputationScore ?? u.score ?? 0,
+            avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Student")}&background=4B9C93&color=fff&size=180`,
             skills: rawSkills.slice(0, 2),
             allSkills: rawSkills,
-            bio: u.bio || "Student developer on ShowMySkills.",
+            bio: u.bio || "",
             projects: u.projects || [],
           };
         });
@@ -138,8 +138,8 @@ export default function StudentPeoplePage() {
       <div className="flex-1 md:ml-[220px] ml-0 flex flex-col min-h-screen relative pb-12">
         {/* Top Header */}
         <DashboardHeader
-          title="Welcome back, CBIT"
-          subtitle="Here's how your profile is performing this week"
+          title="Community & Innovators"
+          subtitle="Discover verified student engineers, contributors, and campus peers"
         />
 
         {/* Toast notification */}

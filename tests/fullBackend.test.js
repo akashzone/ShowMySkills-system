@@ -44,7 +44,7 @@ test('Backend Architecture: Profile Completion Percentage Calculator', () => {
   };
 
   const fullProfile = {
-    name: 'Joel A. Jacob',
+    name: 'Candidate User',
     headline: 'Frontend Engineer',
     bio: 'Passionate builder',
     skills: ['React', 'Next.js'],

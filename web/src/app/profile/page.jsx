@@ -15,35 +15,27 @@ function formatProfileData(u) {
   if (!u) return null;
   return {
     name: u.name || "Student Candidate",
-    tag: u.roleTag || "Maintainer",
+    tag: u.roleTag || "Student",
     verified: Boolean(u.emailVerified || u.collegeIdVerified || u.verified),
-    title: u.headline || u.title || "Software Developer",
-    college: u.college || "College of Engineering",
-    location: u.location || "India",
+    title: u.headline || u.title || "Student Developer",
+    college: u.college || "",
+    location: u.location || "",
     openToWorkMessage: u.openToWorkMessage || "Open to internships and full-time opportunities",
     avatarUrl: u.profileIcon || u.avatarUrl || null,
     primarySkills: Array.isArray(u.primarySkills) && u.primarySkills.length > 0
       ? u.primarySkills
       : Array.isArray(u.skills)
       ? u.skills.map((s) => (typeof s === "string" ? s : s.name))
-      : ["React", "JavaScript", "Python"],
-    completionPercentage: u.completionPercentage || 85,
-    reputationScore: u.reputationScore || 75,
+      : [],
+    completionPercentage: u.completionPercentage || 0,
+    reputationScore: u.reputationScore ?? 0,
     reputationMax: 100,
-    topPercentile: u.topPercentile || "Top 10% in Engineering",
-    metrics: u.metrics || [
-      { label: "Project Quality", value: 95, color: "#4B9C93" },
-      { label: "Endorsements", value: 45, color: "#4B9C93" },
-      { label: "Consistency", value: 70, color: "#4B9C93" },
-    ],
-    aboutText: u.bio || u.aboutText || "Passionate engineer eager to contribute to innovative projects and open-source software.",
+    topPercentile: u.topPercentile || "Student Engineer",
+    metrics: u.metrics || [],
+    aboutText: u.bio || u.aboutText || "",
     skillsList: Array.isArray(u.skills) && u.skills.length > 0
       ? u.skills.map((s) => (typeof s === "string" ? { name: s, level: "advanced" } : s))
-      : [
-          { name: "Frontend Development", level: "expert" },
-          { name: "React", level: "expert" },
-          { name: "Next.js", level: "advanced" },
-        ],
+      : [],
     projectsList: Array.isArray(u.projects) && u.projects.length > 0
       ? u.projects
       : [],

@@ -29,16 +29,16 @@ router.use(authMiddleware);
  *                 example: 'College ID Document'
  *               institution:
  *                 type: string
- *                 example: 'College of Engineering Trivandrum (CET)'
+ *                 example: 'National Institute of Technology'
  *               department:
  *                 type: string
  *                 example: 'Computer Science & Engineering'
  *               docName:
  *                 type: string
- *                 example: 'CET_ID_Card.pdf'
+ *                 example: 'College_ID_Card.pdf'
  *               docUrl:
  *                 type: string
- *                 example: 'http://localhost:5000/uploads/college-ids/cet-id.pdf'
+ *                 example: 'http://localhost:5000/uploads/college-ids/student-id.pdf'
  *               notes:
  *                 type: string
  *                 example: 'Uploaded official college student ID card.'

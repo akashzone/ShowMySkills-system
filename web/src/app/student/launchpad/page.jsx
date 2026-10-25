@@ -142,10 +142,10 @@ export default function StudentLaunchpadPage() {
           position: item.position,
           company: item.company,
           oneLiner: item.oneLiner,
-          location: item.location || "Bengaluru / India",
-          stipend: item.stipend,
-          duration: item.duration || "6 Months",
-          clicks: item.clicks || `${item.clickCount || 0} clicks`,
+          location: item.location || "",
+          stipend: item.stipend || "",
+          duration: item.duration || "",
+          clicks: item.clicks || (item.clickCount != null ? `${item.clickCount} clicks` : ""),
           logoType: item.logoType || "generic",
           applyUrl: item.applyUrl,
           skills: item.skills || [],
@@ -211,8 +211,8 @@ export default function StudentLaunchpadPage() {
       <div className="flex-1 md:ml-[220px] ml-0 flex flex-col min-h-screen relative pb-12">
         {/* Top Header */}
         <DashboardHeader
-          title="Welcome back, CBIT"
-          subtitle="Here's how your profile is performing this week"
+          title="Launchpad Opportunities"
+          subtitle="Explore verified engineering and product internships curated for you"
         />
 
         {/* Toast notification */}
