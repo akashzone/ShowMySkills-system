@@ -13,7 +13,6 @@ import {
   ChevronDown,
   Building2,
   GraduationCap,
-  Sparkles,
   UserCheck,
   XCircle,
   FileText,
@@ -755,7 +754,7 @@ function CompanyApplicationsContent() {
 
                 <div className="mb-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F7F3] text-[#4B9C93] text-xs font-bold mb-2">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Briefcase className="w-3.5 h-3.5" />
                     Recruiter Job Creator
                   </div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
