@@ -33,132 +33,15 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { apiRequest, applicationService, internshipService } from "@/services/apiClient";
 
-const initialCompanyInternships = [
-  {
-    id: "int-1",
-    role: "Frontend Developer Intern",
-    location: "Remote",
-    mode: "Remote",
-    stipend: "₹20,000 - ₹25,000 / mo",
-    duration: "3 Months",
-    department: "Engineering",
-    status: "active",
-    postedDate: "Oct 12, 2026",
-    description: "Build high-performance web components using React 19, Next.js App Router, and Tailwind CSS.",
-  },
-  {
-    id: "int-2",
-    role: "UI/UX Product Design Intern",
-    location: "Bangalore, India",
-    mode: "Hybrid",
-    stipend: "₹15,000 - ₹20,000 / mo",
-    duration: "6 Months",
-    department: "Design",
-    status: "active",
-    postedDate: "Oct 10, 2026",
-    description: "Create design systems, interactive Figma components, and perform user research for web apps.",
-  },
-  {
-    id: "int-3",
-    role: "Machine Learning Research Intern",
-    location: "Hyderabad, India",
-    mode: "Onsite",
-    stipend: "₹30,000 / mo",
-    duration: "6 Months",
-    department: "AI & Data",
-    status: "active",
-    postedDate: "Oct 14, 2026",
-    description: "Assist research scientists in training, fine-tuning, and evaluating transformer language models.",
-  },
-  {
-    id: "int-4",
-    role: "Full Stack Engineering Intern",
-    location: "Bengaluru, India",
-    mode: "Hybrid",
-    stipend: "₹25,000 / mo",
-    duration: "4 Months",
-    department: "Engineering",
-    status: "active",
-    postedDate: "Oct 15, 2026",
-    description: "Develop resilient REST endpoints with Node.js and modern client dashboards with React.",
-  },
-];
-
-const initialApplications = [
-  {
-    id: 1,
-    internshipId: "int-1",
-    name: "Joel A. Jacob",
-    role: "Frontend Developer Intern",
-    college: "College of Engineering Trivandrum",
-    score: 93,
-    status: "Shortlisted",
-    skills: ["React", "Next.js", "Tailwind CSS", "TypeScript"],
-    appliedDate: "Oct 19, 2026",
-    email: "joel.jacob@cet.ac.in",
-    phone: "+91 98471 23456",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180",
-    portfolioUrl: "https://github.com/joel-jacob",
-    notes: "Demonstrated strong mastery in React 19 architecture and Next.js App Router.",
-  },
-  {
-    id: 2,
-    internshipId: "int-2",
-    name: "S SIDHARTH",
-    role: "UI/UX Product Design Intern",
-    college: "College of Engineering Trivandrum",
-    score: 96,
-    status: "Interviewing",
-    skills: ["Figma", "Design Systems", "User Research", "Prototyping"],
-    appliedDate: "Oct 18, 2026",
-    email: "sidharth.s@cet.ac.in",
-    phone: "+91 94470 65432",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ab8e554398afb86403d2a7da0c420fe67c60f085?width=180",
-    portfolioUrl: "https://behance.net/sidharth-design",
-    notes: "Portfolio includes enterprise analytics design systems and mobile prototypes.",
-  },
-  {
-    id: 3,
-    internshipId: "int-3",
-    name: "Ananya Sharma",
-    role: "Machine Learning Research Intern",
-    college: "IIT Madras",
-    score: 89,
-    status: "Reviewing",
-    skills: ["PyTorch", "Python", "Data Analytics", "NLP"],
-    appliedDate: "Oct 18, 2026",
-    email: "ananya.sharma@iitm.ac.in",
-    phone: "+91 91234 56789",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=180&auto=format&fit=crop&q=80",
-    portfolioUrl: "https://github.com/ananya-ml",
-    notes: "Published work in transformer model fine-tuning for low-resource languages.",
-  },
-  {
-    id: 4,
-    internshipId: "int-4",
-    name: "Rahul Verma",
-    role: "Full Stack Engineering Intern",
-    college: "BITS Pilani",
-    score: 91,
-    status: "Applied",
-    skills: ["Node.js", "PostgreSQL", "React", "Docker"],
-    appliedDate: "Oct 17, 2026",
-    email: "rahul.verma@pilani.bits.ac.in",
-    phone: "+91 98111 22334",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=180&auto=format&fit=crop&q=80",
-    portfolioUrl: "https://github.com/rahul-verma",
-    notes: "Built scalable payment webhook services with 99.9% uptime test suites.",
-  },
-];
-
 const statusTabs = ["All", "Applied", "Reviewing", "Shortlisted", "Interviewing", "Hired", "Rejected"];
 
 function CompanyApplicationsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [companyInternships, setCompanyInternships] = useState(initialCompanyInternships);
-  const [applications, setApplications] = useState(initialApplications);
+  const [companyInternships, setCompanyInternships] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedInternshipId, setSelectedInternshipId] = useState("all");
   const [selectedTab, setSelectedTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -179,19 +62,25 @@ function CompanyApplicationsContent() {
   });
   const [postingLoading, setPostingLoading] = useState(false);
 
-  // Fetch applications and posted internships on mount with seamless fallback
+  // Fetch applications and posted internships directly from API
   useEffect(() => {
     let isMounted = true;
-    applicationService.getCompanyApplications({}, initialApplications).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    setLoading(true);
+    applicationService.getCompanyApplications({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         setApplications(res);
       }
-    });
-    internshipService.list({}, initialCompanyInternships).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    }).catch(() => {});
+
+    internshipService.list({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         setCompanyInternships(res);
       }
+      if (isMounted) setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
+
     return () => {
       isMounted = false;
     };
@@ -275,8 +164,7 @@ function CompanyApplicationsContent() {
     };
 
     try {
-      // Attempt backend API call if server is running
-      await apiRequest("/internships", "POST", {
+      const created = await apiRequest("/internships", "POST", {
         role: newInternshipObj.role,
         company: newInternshipObj.company,
         location: newInternshipObj.location,
@@ -286,19 +174,21 @@ function CompanyApplicationsContent() {
         description: newInternshipObj.description,
         skills: skillsArray,
       });
-    } catch (err) {
-      // Graceful fallback to client state if offline or token not present
-      console.log("Posting internship locally in state:", err.message);
-    } finally {
-      setCompanyInternships((prev) => [newInternshipObj, ...prev]);
-      setSelectedInternshipId(newInternshipObj.id);
+
+      const savedInternship = created?.data?.internship || created?.data || newInternshipObj;
+      setCompanyInternships((prev) => [savedInternship, ...prev]);
+      setSelectedInternshipId(savedInternship._id || savedInternship.id);
       setSelectedTab("All");
-      setPostingLoading(false);
       handleClosePostModal();
 
       // Show success toast
-      setSuccessToast(`"${newInternshipObj.role}" posted successfully!`);
+      setSuccessToast(`"${savedInternship.role || newInternshipObj.role}" posted successfully!`);
       setTimeout(() => setSuccessToast(""), 4000);
+    } catch (err) {
+      alert(err.message || "Failed to post internship to database. Please try again.");
+    } finally {
+      setPostingLoading(false);
+    }
 
       // Reset form
       setPostForm({
@@ -311,7 +201,6 @@ function CompanyApplicationsContent() {
         skills: "React, Node.js, TypeScript",
         description: "",
       });
-    }
   };
 
   return (

@@ -23,89 +23,6 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { applicationService } from "@/services/apiClient";
 
-const mockApplications = [
-  {
-    id: "app-101",
-    internshipId: "int-1",
-    companyName: "WebShark Technologies",
-    role: "Full Stack Developer Intern",
-    location: "Bengaluru, India (Hybrid)",
-    workType: "Hybrid",
-    stipend: "₹25,000 - ₹35,000 / mo",
-    appliedDate: "Oct 18, 2026",
-    status: "Shortlisted", // Applied, Reviewing, Shortlisted, Interviewing, Offered, Rejected
-    stageNotes: "Technical interview scheduled on Google Meet for Oct 28 at 3:30 PM IST.",
-    recruiterName: "Vikram Malhotra",
-    recruiterRole: "Engineering Lead",
-    skillsMatched: ["React", "Node.js", "Express", "MongoDB"],
-    logo: "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=100&h=100&fit=crop",
-  },
-  {
-    id: "app-102",
-    internshipId: "int-2",
-    companyName: "Google Cloud Partners",
-    role: "Cloud Engineering Intern",
-    location: "Hyderabad, India (Remote)",
-    workType: "Remote",
-    stipend: "₹85,000 / mo",
-    appliedDate: "Oct 15, 2026",
-    status: "Interviewing",
-    stageNotes: "Round 2: System Design & DSA assessment with senior cloud architect.",
-    recruiterName: "Priya Sundaram",
-    recruiterRole: "Campus Talent Lead",
-    skillsMatched: ["Python", "Docker", "GCP", "Kubernetes"],
-    logo: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=100&h=100&fit=crop",
-  },
-  {
-    id: "app-103",
-    internshipId: "int-3",
-    companyName: "Razorpay Fintech",
-    role: "Backend Systems Intern",
-    location: "Bengaluru, India (Hybrid)",
-    workType: "Hybrid",
-    stipend: "₹45,000 / mo",
-    appliedDate: "Oct 20, 2026",
-    status: "Reviewing",
-    stageNotes: "Application is under technical review by the Payments Core engineering team.",
-    recruiterName: "Rohan Varma",
-    recruiterRole: "Technical Recruiter",
-    skillsMatched: ["Node.js", "PostgreSQL", "Kafka"],
-    logo: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=100&h=100&fit=crop",
-  },
-  {
-    id: "app-104",
-    internshipId: "int-4",
-    companyName: "Xphia Solutions",
-    role: "Frontend UX Engineer Intern",
-    location: "Remote",
-    workType: "Remote",
-    stipend: "₹30,000 / mo",
-    appliedDate: "Oct 22, 2026",
-    status: "Offered",
-    stageNotes: "Congratulations! Formal offer letter released. Please sign before Nov 05, 2026.",
-    recruiterName: "Ananya Deshmukh",
-    recruiterRole: "Head of People",
-    skillsMatched: ["Next.js", "Tailwind CSS", "Framer Motion"],
-    logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=100&fit=crop",
-  },
-  {
-    id: "app-105",
-    internshipId: "int-5",
-    companyName: "Zomato Logistics",
-    role: "Data Science Intern",
-    location: "Gurugram, India",
-    workType: "Onsite",
-    stipend: "₹40,000 / mo",
-    appliedDate: "Sep 28, 2026",
-    status: "Rejected",
-    stageNotes: "Position closed for this cohort. We encourage you to apply for future openings.",
-    recruiterName: "Talent Acquisition",
-    recruiterRole: "Campus Recruitment",
-    skillsMatched: ["Python", "SQL", "Pandas"],
-    logo: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=100&h=100&fit=crop",
-  },
-];
-
 const statusStyles = {
   Applied: {
     bg: "bg-slate-100 text-slate-700 border-slate-200",
@@ -136,34 +53,39 @@ const statusStyles = {
 export default function StudentApplicationsPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [applications, setApplications] = useState(mockApplications);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    applicationService.getMyApplications(mockApplications).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    setLoading(true);
+    applicationService.getMyApplications().then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         const mapped = res.map((app) => ({
           id: app._id || app.id,
           internshipId: app.internship?._id || app.internshipId || "int-1",
-          companyName: app.internship?.companyName || app.companyName || "Partner Company",
-          role: app.internship?.title || app.role || "Internship Role",
+          companyName: app.internship?.company || app.companyName || "Partner Company",
+          role: app.internship?.role || app.role || "Internship Role",
           location: app.internship?.location || app.location || "Remote",
-          workType: app.internship?.workType || app.workType || "Remote",
-          stipend: app.internship?.stipend || app.stipend || "Competitive",
+          workType: app.internship?.mode || app.workType || "Remote",
+          stipend: app.internship?.stipendText || app.stipend || "Competitive",
           appliedDate: app.createdAt
             ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-            : app.appliedDate || "Recently",
+            : "Recently",
           status: app.status
             ? app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()
             : "Applied",
-          stageNotes: app.notes || app.stageNotes || "Application submitted successfully.",
-          recruiterName: app.recruiterName || "Campus Recruiter",
-          recruiterRole: app.recruiterRole || "Talent Team",
-          skillsMatched: app.internship?.skills || app.skillsMatched || ["Software", "Engineering"],
-          logo: app.internship?.logo || app.logo || "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=100&h=100&fit=crop",
+          stageNotes: app.notes || "Application submitted successfully.",
+          recruiterName: "Campus Recruiter",
+          recruiterRole: "Talent Acquisition",
+          skillsMatched: app.internship?.skills || ["React", "Node.js"],
+          logo: app.internship?.companyLogo || "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=100&h=100&fit=crop",
         }));
         setApplications(mapped);
       }
+      setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;

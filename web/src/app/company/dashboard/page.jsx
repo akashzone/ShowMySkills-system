@@ -25,81 +25,35 @@ const stats = [
   { label: "Interviews Scheduled", value: "14", change: "4 this week", icon: Calendar, color: "text-purple-600", bg: "bg-purple-50" },
 ];
 
-const mockRecentApplicants = [
-  {
-    id: 1,
-    name: "Joel A. Jacob",
-    role: "Frontend Developer Intern",
-    college: "College of Engineering Trivandrum",
-    score: 93,
-    status: "Shortlisted",
-    statusColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    skills: ["React", "Next.js", "Tailwind CSS"],
-    appliedDate: "Oct 19, 2026",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180",
-  },
-  {
-    id: 2,
-    name: "S SIDHARTH",
-    role: "UI/UX Product Design Intern",
-    college: "College of Engineering Trivandrum",
-    score: 96,
-    status: "Interview Scheduled",
-    statusColor: "bg-purple-50 text-purple-700 border-purple-200",
-    skills: ["Figma", "Design Systems", "User Research"],
-    appliedDate: "Oct 18, 2026",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ab8e554398afb86403d2a7da0c420fe67c60f085?width=180",
-  },
-  {
-    id: 3,
-    name: "Ananya Sharma",
-    role: "Machine Learning Research Intern",
-    college: "IIT Madras",
-    score: 89,
-    status: "Reviewing",
-    statusColor: "bg-amber-50 text-amber-700 border-amber-200",
-    skills: ["PyTorch", "Python", "Data Analytics"],
-    appliedDate: "Oct 18, 2026",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=180&auto=format&fit=crop&q=80",
-  },
-  {
-    id: 4,
-    name: "Rahul Verma",
-    role: "Full Stack Engineering Intern",
-    college: "BITS Pilani",
-    score: 91,
-    status: "Applied",
-    statusColor: "bg-blue-50 text-blue-700 border-blue-200",
-    skills: ["Node.js", "PostgreSQL", "React"],
-    appliedDate: "Oct 17, 2026",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=180&auto=format&fit=crop&q=80",
-  },
-];
-
 export default function CompanyDashboardPage() {
-  const [recentApplicants, setRecentApplicants] = useState(mockRecentApplicants);
+  const [recentApplicants, setRecentApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    applicationService.getCompanyApplications({}, mockRecentApplicants).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    setLoading(true);
+    applicationService.getCompanyApplications({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         const mapped = res.map((app) => ({
           id: app._id || app.id,
-          name: app.candidate?.name || app.name || "Student Candidate",
-          role: app.internship?.title || app.role || "Internship Role",
-          college: app.candidate?.college || app.college || "University Partner",
+          name: app.candidate?.name || app.candidateName || "Student Candidate",
+          role: app.internship?.role || app.internship?.title || "Internship Role",
+          college: app.candidate?.college || "College of Engineering",
           score: app.score || 90,
           status: app.status ? (app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()) : "Applied",
           statusColor: app.status === "Shortlisted" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
                        app.status === "Interviewing" ? "bg-purple-50 text-purple-700 border-purple-200" :
                        app.status === "Reviewing" ? "bg-amber-50 text-amber-700 border-amber-200" :
                        "bg-blue-50 text-blue-700 border-blue-200",
-          skills: app.candidate?.skills || app.skills || ["React", "TypeScript"],
-          appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : app.appliedDate || "Recently",
-          avatar: app.candidate?.avatar || app.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=180&auto=format&fit=crop&q=80",
+          skills: app.candidate?.primarySkills || (app.candidate?.skills ? app.candidate.skills.map(s => typeof s === "string" ? s : s.name) : ["React", "TypeScript"]),
+          appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently",
+          avatar: app.candidate?.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(app.candidate?.name || "Student")}&background=4B9C93&color=fff&size=180`,
         }));
         setRecentApplicants(mapped);
       }
+      setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;

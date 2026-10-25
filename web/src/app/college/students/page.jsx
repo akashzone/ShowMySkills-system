@@ -22,123 +22,9 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { peopleService } from "@/services/apiClient";
 
-const initialStudents = [
-  {
-    id: "stu-1",
-    name: "Joel Fernandez",
-    email: "joel.fernandez@cbit.edu",
-    rollNumber: "2023-CS-042",
-    department: "Computer Science",
-    graduationYear: 2027,
-    cgpa: "9.4",
-    idVerificationStatus: "verified", // verified, pending, rejected
-    placementStatus: "Placed", // Placed, Interviewing, Seeking
-    company: "Google Cloud",
-    roleTag: "Maintainer",
-    skills: ["React", "Node.js", "System Design", "TypeScript"],
-    badgesCount: 5,
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-  },
-  {
-    id: "stu-2",
-    name: "Sidharth Sharma",
-    email: "sidharth.sharma@cbit.edu",
-    rollNumber: "2023-AI-018",
-    department: "AI & Data Science",
-    graduationYear: 2027,
-    cgpa: "9.2",
-    idVerificationStatus: "verified",
-    placementStatus: "Placed",
-    company: "WebShark Technologies",
-    roleTag: "Admin",
-    skills: ["Python", "PyTorch", "FastAPI", "MongoDB"],
-    badgesCount: 4,
-    avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&h=100&fit=crop",
-  },
-  {
-    id: "stu-3",
-    name: "Reshma Varma",
-    email: "reshma.varma@cbit.edu",
-    rollNumber: "2023-IT-089",
-    department: "Information Technology",
-    graduationYear: 2027,
-    cgpa: "9.1",
-    idVerificationStatus: "verified",
-    placementStatus: "Interviewing",
-    company: "Razorpay Fintech",
-    roleTag: "Contributor",
-    skills: ["Next.js", "Docker", "AWS", "Express"],
-    badgesCount: 3,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-  },
-  {
-    id: "stu-4",
-    name: "Ananya Iyer",
-    email: "ananya.iyer@cbit.edu",
-    rollNumber: "2023-CS-104",
-    department: "Computer Science",
-    graduationYear: 2026,
-    cgpa: "8.9",
-    idVerificationStatus: "verified",
-    placementStatus: "Placed",
-    company: "Xphia Tech",
-    roleTag: "Ambassador",
-    skills: ["TypeScript", "Tailwind CSS", "GraphQL"],
-    badgesCount: 3,
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-  },
-  {
-    id: "stu-5",
-    name: "Arun Kumar",
-    email: "arun.kumar@cbit.edu",
-    rollNumber: "2024-ECE-055",
-    department: "Electronics & Communication",
-    graduationYear: 2028,
-    cgpa: "8.4",
-    idVerificationStatus: "pending",
-    placementStatus: "Seeking",
-    company: null,
-    roleTag: "Regular",
-    skills: ["Embedded C", "IoT", "Arduino"],
-    badgesCount: 1,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-  },
-  {
-    id: "stu-6",
-    name: "Sneha Patel",
-    email: "sneha.patel@cbit.edu",
-    rollNumber: "2024-IT-031",
-    department: "Information Technology",
-    graduationYear: 2028,
-    cgpa: "8.7",
-    idVerificationStatus: "pending",
-    placementStatus: "Seeking",
-    company: null,
-    roleTag: "Regular",
-    skills: ["Java", "Spring Boot", "MySQL"],
-    badgesCount: 2,
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop",
-  },
-  {
-    id: "stu-7",
-    name: "Karthik Reddy",
-    email: "karthik.reddy@cbit.edu",
-    rollNumber: "2023-MECH-012",
-    department: "Mechanical Engineering",
-    graduationYear: 2027,
-    cgpa: "7.9",
-    idVerificationStatus: "verified",
-    placementStatus: "Seeking",
-    company: null,
-    roleTag: "Regular",
-    skills: ["SolidWorks", "AutoCAD", "MATLAB"],
-    badgesCount: 1,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-  },
-];
-
 export default function CollegeStudentsPage() {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -146,10 +32,30 @@ export default function CollegeStudentsPage() {
 
   useEffect(() => {
     let isMounted = true;
-    peopleService.list({ role: "student" }, initialStudents).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
-        setStudents(res);
+    setLoading(true);
+    peopleService.list({ role: "student" }).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
+        const mapped = res.map((u, i) => ({
+          id: u._id || u.id || `stu-${i + 1}`,
+          name: u.name,
+          email: u.email,
+          rollNumber: u.rollNumber || `2024-ENG-0${i + 1}`,
+          department: u.branch || u.course || "Industrial Engineering",
+          graduationYear: u.graduationYear || 2026,
+          cgpa: u.cgpa || "9.0",
+          idVerificationStatus: u.collegeIdVerified ? "verified" : "pending",
+          placementStatus: "Seeking",
+          company: null,
+          roleTag: u.roleTag || "Maintainer",
+          skills: u.primarySkills || (u.skills ? u.skills.map((s) => typeof s === "string" ? s : s.name) : ["React", "TypeScript"]),
+          badgesCount: 3,
+          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=4B9C93&color=fff&size=100`,
+        }));
+        setStudents(mapped);
       }
+      setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;

@@ -23,136 +23,28 @@ import {
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
 import { chatService } from "@/services/apiClient";
 
-// Initial mock conversations with campus student talent
-const defaultConversations = [
-  {
-    id: 1,
-    name: "Joel A. Jacob",
-    tag: "Maintainer",
-    role: "Frontend Developer",
-    college: "College of Engineering Trivandrum",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180",
-    score: 23,
-    online: true,
-    lastTime: "Just now",
-    unread: 1,
-    messages: [
-      {
-        id: "m1",
-        sender: "them",
-        text: "Hey there! Saw you starred my CampusHub project. Thanks a lot!",
-        time: "10:14 AM",
-        status: "read",
-      },
-      {
-        id: "m2",
-        sender: "me",
-        text: "Hi Joel! Loved the Flutter UI architecture. Are you open to collaborating on upcoming hackathons?",
-        time: "10:16 AM",
-        status: "read",
-      },
-      {
-        id: "m3",
-        sender: "them",
-        text: "Definitely! I'm currently refining our ShowMySkills web client components too. Let's build something together!",
-        time: "10:18 AM",
-        status: "delivered",
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "S SIDHARTH",
-    tag: "Admin",
-    role: "UI/UX Designer",
-    college: "College of Engineering Trivandrum",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ab8e554398afb86403d2a7da0c420fe67c60f085?width=180",
-    score: 63,
-    online: true,
-    lastTime: "12m ago",
-    unread: 0,
-    messages: [
-      {
-        id: "m21",
-        sender: "them",
-        text: "Hello! Just updated the FinFlow design system components on Figma. Would love your feedback on the typography tokens.",
-        time: "Yesterday",
-        status: "read",
-      },
-      {
-        id: "m22",
-        sender: "me",
-        text: "The new dark mode contrast ratios look super crisp! Really solid design system work.",
-        time: "Yesterday",
-        status: "read",
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "Reshma Udhayan",
-    tag: "Promoter",
-    role: "FullStack Developer",
-    college: "College of Engineering Trivandrum",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/c3059191c12486377929540d913e78b03ba9bddc?width=180",
-    score: 72,
-    online: false,
-    lastTime: "2h ago",
-    unread: 0,
-    messages: [
-      {
-        id: "m31",
-        sender: "them",
-        text: "Hi! We're testing the real-time CAD sync websocket pipelines right now.",
-        time: "2h ago",
-        status: "read",
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: "Vaishnav RL",
-    tag: "Ambassador",
-    role: "Graphic Designer",
-    college: "College of Engineering Trivandrum",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/46fce00ed55aca498d8347d953abdc65e3ba2655?width=180",
-    score: 81,
-    online: false,
-    lastTime: "1d ago",
-    unread: 0,
-    messages: [
-      {
-        id: "m41",
-        sender: "them",
-        text: "Hey! Shared the brand vector kit with the design team.",
-        time: "1d ago",
-        status: "read",
-      },
-    ],
-  },
-];
-
 function ChatsContent() {
   const searchParams = useSearchParams();
   const paramUserId = searchParams.get("user");
   const paramUserName = searchParams.get("name");
 
-  const [conversations, setConversations] = useState(defaultConversations);
-  const [activeChatId, setActiveChatId] = useState(1);
+  const [conversations, setConversations] = useState([]);
+  const [activeChatId, setActiveChatId] = useState(null);
   const [inputText, setInputText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isTypingReply, setIsTypingReply] = useState(false);
   const [mobileViewChat, setMobileViewChat] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Fetch conversations from API with fallback to defaultConversations
+  // Fetch conversations from API directly
   useEffect(() => {
     let isMounted = true;
-    chatService.getConversations(defaultConversations).then((res) => {
+    chatService.getConversations().then((res) => {
       if (isMounted && res && Array.isArray(res) && res.length > 0) {
         setConversations(res);
+        setActiveChatId(res[0]._id || res[0].id);
       }
-    });
+    }).catch(() => {});
     return () => {
       isMounted = false;
     };
