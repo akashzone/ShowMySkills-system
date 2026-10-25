@@ -83,10 +83,6 @@ export const getInternships = async (query) => {
 
 export const getInternshipById = async (id) => {
   if (!/^[a-f\d]{24}$/i.test(id)) {
-    // Also support custom IDs like 'int-001'
-    const item = await Internship.findOne({ $or: [{ _id: id }, { applicationUrl: new RegExp(id, 'i') }] }).lean();
-    if (item) return item;
-
     const error = new Error('Invalid internship ID');
     error.statusCode = 400;
     throw error;

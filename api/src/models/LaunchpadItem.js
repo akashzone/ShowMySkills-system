@@ -26,15 +26,15 @@ const launchpadItemSchema = new mongoose.Schema(
     },
     duration: {
       type: String,
-      default: '6 Months',
+      default: '',
     },
     clicks: {
       type: String,
-      default: '1.2k clicks',
+      default: '0 clicks',
     },
     clickCount: {
       type: Number,
-      default: 1200,
+      default: 0,
     },
     logoType: {
       type: String,
@@ -66,7 +66,7 @@ const launchpadItemSchema = new mongoose.Schema(
     },
     batchYear: {
       type: String,
-      default: '2025/2026',
+      default: '',
     },
     isVerified: {
       type: Boolean,
@@ -74,7 +74,7 @@ const launchpadItemSchema = new mongoose.Schema(
     },
     featured: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {

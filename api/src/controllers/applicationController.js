@@ -40,7 +40,7 @@ export const applicationController = {
         phone: student.phone || '',
         college: student.college || '',
         department: student.branch || student.course || '',
-        score: student.reputationScore || 85,
+        score: student.reputationScore ?? 0,
         avatar: student.profileIcon || null,
         skills: student.skills?.map((s) => s.name) || student.primarySkills || [],
         portfolioUrl: student.portfolioUrl || '',
@@ -94,9 +94,8 @@ export const applicationController = {
       const { status, search, role } = req.query;
       const filter = {};
 
-      // If user is company, filter by company postings or company id
       if (req.user.role === 'company') {
-        filter.$or = [{ company: req.user.id }, { company: null }];
+        filter.company = req.user.id;
       }
 
       if (status && status !== 'all') {

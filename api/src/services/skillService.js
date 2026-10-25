@@ -87,7 +87,7 @@ export const skillService = {
       const student = await User.findById(studentId);
       if (student) {
         // Boost reputation score
-        const newReputation = Math.min(100, (student.reputationScore || 70) + 5);
+        const newReputation = Math.min(100, (student.reputationScore ?? 0) + 5);
 
         // Check if skill exists, else push
         const existingSkillIndex = student.skills.findIndex(
