@@ -222,6 +222,7 @@ router.put('/users/:id/role-tag', adminController.updateRoleTag);
  *                   $ref: '#/components/schemas/Internship'
  */
 router.put('/internships/:id/moderate', adminController.moderateInternship);
+router.delete('/internships/:id', adminController.deleteInternship);
 
 /**
  * @openapi

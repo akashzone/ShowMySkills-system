@@ -55,40 +55,31 @@ function LoginFormContent() {
 
   const config = roleConfigs[activeRole];
 
+  const handleRoleChange = (role) => {
+    setActiveRole(role);
+    setError("");
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-      const res = await authService.login(email, password, activeRole);
-      if (res?.data?.token) {
-        localStorage.setItem("token", res.data.token);
+      const res = await authService.login(normalizedEmail, password, activeRole);
+      if (res?.data) {
+        const token = res.data.accessToken || res.data.token;
+        if (token) localStorage.setItem("token", token);
+        if (res.data.refreshToken) localStorage.setItem("refreshToken", res.data.refreshToken);
         localStorage.setItem("user", JSON.stringify(res.data.user || res.data));
       }
       setLoading(false);
       router.push(config.dashboardRoute);
     } catch (err) {
-      if (
-        err.message &&
-        !err.message.includes("Failed to fetch") &&
-        !err.message.includes("NetworkError") &&
-        !err.message.includes("aborted")
-      ) {
-        setError(err.message);
-        setLoading(false);
-      } else {
-        // Backend offline fallback: preserve seamless login experience
-        localStorage.setItem("token", "mock-jwt-token-demo");
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ email, role: activeRole, name: email.split("@")[0] })
-        );
-        setTimeout(() => {
-          setLoading(false);
-          router.push(config.dashboardRoute);
-        }, 300);
-      }
+      setError(err.message || "Failed to log in. Please check your credentials.");
+      setLoading(false);
     }
   };
 
@@ -142,7 +133,7 @@ function LoginFormContent() {
           <div className="flex items-center bg-gray-100/80 p-1 rounded-full text-xs font-semibold">
             <button
               type="button"
-              onClick={() => setActiveRole("student")}
+              onClick={() => handleRoleChange("student")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                 activeRole === "student"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
@@ -153,7 +144,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveRole("company")}
+              onClick={() => handleRoleChange("company")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                 activeRole === "company"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
@@ -164,7 +155,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveRole("admin")}
+              onClick={() => handleRoleChange("admin")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                 activeRole === "admin"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
@@ -177,7 +168,7 @@ function LoginFormContent() {
         </div>
 
         {/* Card Title & Subtitle */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-4">
           <h2 className="text-3xl sm:text-[32px] font-bold text-gray-900">
             Log In
           </h2>
@@ -185,6 +176,8 @@ function LoginFormContent() {
             Welcome back to ShowMySkills
           </p>
         </div>
+
+
 
         {/* Form Inputs Grid */}
         <form onSubmit={handleLogin} className="space-y-4">

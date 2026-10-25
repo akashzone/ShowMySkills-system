@@ -75,4 +75,53 @@ export const authController = {
       next(error);
     }
   },
+
+  updateMe: async (req, res, next) => {
+    try {
+      const updatedUser = await userService.updateProfile(req.user.id, req.body);
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  refresh: async (req, res, next) => {
+    try {
+      const refreshToken =
+        req.body?.refreshToken ||
+        req.headers['x-refresh-token'] ||
+        (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
+          ? req.headers.authorization.slice(7)
+          : null);
+
+      const result = await userService.refreshAccessToken(refreshToken);
+      res.json({
+        success: true,
+        message: 'Access token refreshed successfully',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  logout: async (req, res, next) => {
+    try {
+      const refreshToken =
+        req.body?.refreshToken || req.headers['x-refresh-token'];
+      if (refreshToken) {
+        await userService.revokeRefreshToken(refreshToken);
+      }
+      res.json({
+        success: true,
+        message: 'Logged out successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -131,7 +131,7 @@ router.post('/login', authRateLimiter, validateLogin, authController.login);
  *               college:
  *                 type: string
  *                 description: Required for student accounts
- *                 example: 'College of Engineering Trivandrum (CET)'
+ *                 example: 'National Institute of Technology'
  *               graduationYear:
  *                 type: integer
  *                 description: Required for student accounts
@@ -139,7 +139,7 @@ router.post('/login', authRateLimiter, validateLogin, authController.login);
  *               collegeId:
  *                 type: string
  *                 description: Required for student accounts
- *                 example: 'CET-2022-CS-042'
+ *                 example: 'UNI-2022-CS-042'
  *               collegeIdFile:
  *                 type: string
  *                 format: binary
@@ -175,13 +175,13 @@ router.post('/login', authRateLimiter, validateLogin, authController.login);
  *                 example: 'student'
  *               college:
  *                 type: string
- *                 example: 'College of Engineering Trivandrum (CET)'
+ *                 example: 'National Institute of Technology'
  *               graduationYear:
  *                 type: integer
  *                 example: 2026
  *               collegeId:
  *                 type: string
- *                 example: 'CET-2022-CS-042'
+ *                 example: 'UNI-2022-CS-042'
  *     responses:
  *       201:
  *         description: Account created successfully; OTP dispatched to email
@@ -437,5 +437,78 @@ router.post('/reset-password', authRateLimiter, authController.resetPassword);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/me', authMiddleware, authController.getMe);
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   put:
+ *     summary: Update currently authenticated user profile
+ *     description: Update authenticated profile fields, aliases, settings, or credentials.
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/me', authMiddleware, authController.updateMe);
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Exchange refresh token for a fresh access token
+ *     description: Provides automated token rotation and seamless authentication lifecycle without re-logging in.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tokens refreshed successfully
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+router.post('/refresh', authRateLimiter, authController.refresh);
+
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout and revoke refresh token
+ *     description: Removes active refresh token session from user record.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
+router.post('/logout', authController.logout);
 
 export default router;

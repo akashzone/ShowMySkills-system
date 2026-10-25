@@ -21,8 +21,93 @@ export const getApiBaseUrl = () => {
   );
 };
 
+export const tokenStorage = {
+  getAccessToken: () => {
+    if (typeof window === "undefined") return null;
+    return (
+      localStorage.getItem("token") ||
+      localStorage.getItem("accessToken") ||
+      sessionStorage.getItem("token") ||
+      sessionStorage.getItem("accessToken") ||
+      null
+    );
+  },
+
+  getRefreshToken: () => {
+    if (typeof window === "undefined") return null;
+    return (
+      localStorage.getItem("refreshToken") ||
+      sessionStorage.getItem("refreshToken") ||
+      null
+    );
+  },
+
+  setTokens: ({ accessToken, refreshToken, token }) => {
+    if (typeof window === "undefined") return;
+    const access = accessToken || token;
+    if (access) {
+      localStorage.setItem("token", access);
+      localStorage.setItem("accessToken", access);
+      sessionStorage.setItem("token", access);
+      sessionStorage.setItem("accessToken", access);
+    }
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+      sessionStorage.setItem("refreshToken", refreshToken);
+    }
+  },
+
+  clearTokens: () => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("jwt");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+  },
+};
+
+let refreshPromise = null;
+
+async function refreshTokensDirectly() {
+  const refreshToken = tokenStorage.getRefreshToken();
+  if (!refreshToken) {
+    tokenStorage.clearTokens();
+    throw new Error("No refresh token available");
+  }
+
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/auth/refresh`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!res.ok) {
+    tokenStorage.clearTokens();
+    const err = new Error("Session expired. Please log in again.");
+    err.status = res.status;
+    throw err;
+  }
+
+  const json = await res.json();
+  const payload = json.data || json;
+  tokenStorage.setTokens({
+    accessToken: payload.accessToken || payload.token,
+    refreshToken: payload.refreshToken,
+  });
+
+  return payload.accessToken || payload.token;
+}
+
 /**
- * Standard API request with timeout and auto-injected Bearer auth.
+ * Standard API request with timeout, auto-injected Bearer auth,
+ * and automated silent token refresh on 401 expiration.
  */
 export async function apiRequest(endpoint, method = "GET", body = null, customHeaders = {}) {
   const baseUrl = getApiBaseUrl();
@@ -30,15 +115,9 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
 
   const headers = { ...customHeaders };
 
-  // Auto-inject stored JWT token from localStorage if available
-  if (typeof window !== "undefined") {
-    const token =
-      localStorage.getItem("token") ||
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("jwt");
-    if (token && !headers["Authorization"]) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+  const accessToken = tokenStorage.getAccessToken();
+  if (accessToken && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
   const options = {
@@ -54,13 +133,44 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
     options.body = JSON.stringify(body);
   }
 
-  // Abort request after 4 seconds to fail fast if backend is offline
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
   options.signal = controller.signal;
 
   try {
-    const res = await fetch(`${baseUrl}${formattedEndpoint}`, options);
+    let res = await fetch(`${baseUrl}${formattedEndpoint}`, options);
+
+    // Auto-refresh token if access token expired (HTTP 401 on authenticated endpoints)
+    if (
+      res.status === 401 &&
+      !formattedEndpoint.includes("/auth/login") &&
+      !formattedEndpoint.includes("/auth/register") &&
+      !formattedEndpoint.includes("/auth/refresh") &&
+      tokenStorage.getRefreshToken()
+    ) {
+      try {
+        if (!refreshPromise) {
+          refreshPromise = refreshTokensDirectly().finally(() => {
+            refreshPromise = null;
+          });
+        }
+        const newAccessToken = await refreshPromise;
+
+        // Retry original request with newly issued access token
+        const retryHeaders = {
+          ...headers,
+          Authorization: `Bearer ${newAccessToken}`,
+        };
+        const retryOptions = {
+          ...options,
+          headers: retryHeaders,
+        };
+        res = await fetch(`${baseUrl}${formattedEndpoint}`, retryOptions);
+      } catch {
+        // Refresh token failed or revoked; proceed to error handling below
+      }
+    }
+
     clearTimeout(timeoutId);
 
     if (!res.ok) {
@@ -70,9 +180,12 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
       } catch {
         // Not a JSON response
       }
-      throw new Error(
+      const err = new Error(
         errorData.message || `Request failed with HTTP status ${res.status}`
       );
+      err.status = res.status;
+      err.data = errorData;
+      throw err;
     }
 
     return await res.json();
@@ -83,12 +196,109 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
 }
 
 /**
- * Executes an API request with seamless fallback to dummy data if backend is offline.
+ * Health check probe for system status and /error diagnostics.
+ * Evaluates both Express API server availability and MongoDB database state.
+ */
+export async function checkBackendHealth() {
+  const baseUrl = getApiBaseUrl();
+  const startTime = Date.now();
+
+  try {
+    const res = await fetch(`${baseUrl}/health`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+
+    const latencyMs = Date.now() - startTime;
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch {
+      payload = null;
+    }
+
+    if (res.status === 200) {
+      return {
+        online: true,
+        statusCode: 200,
+        latencyMs,
+        backend: payload?.services?.backend || { status: "up" },
+        database: payload?.services?.database || { status: "connected" },
+        message: payload?.message || "All core systems operational.",
+        raw: payload,
+      };
+    } else if (res.status === 503) {
+      return {
+        online: true, // Express is responding, but service is degraded
+        statusCode: 503,
+        latencyMs,
+        backend: payload?.services?.backend || { status: "up" },
+        database: payload?.services?.database || {
+          status: "disconnected",
+          error: "MongoDB is not running or disconnected",
+        },
+        message:
+          payload?.message || "Database service unavailable. MongoDB is not running.",
+        raw: payload,
+      };
+    } else {
+      return {
+        online: true,
+        statusCode: res.status,
+        latencyMs,
+        backend: payload?.services?.backend || { status: "unknown" },
+        database: payload?.services?.database || { status: "unknown" },
+        message: payload?.message || `HTTP ${res.status}`,
+        raw: payload,
+      };
+    }
+  } catch (err) {
+    const latencyMs = Date.now() - startTime;
+    return {
+      online: false, // Express is NOT running or unreachable
+      statusCode: 503,
+      latencyMs,
+      backend: {
+        status: "offline",
+        error: err.message || "Failed to connect to Express backend server.",
+      },
+      database: {
+        status: "unknown",
+        error: "Cannot check MongoDB status because backend server is not running.",
+      },
+      message: "Backend server is not running or unreachable at " + baseUrl,
+      raw: { error: err.message },
+    };
+  }
+}
+
+/**
+ * Executes a direct API request and unwraps the response data.
  * @param {string} endpoint - API route relative to /api
  * @param {string} method - HTTP method
  * @param {any} body - Request body
- * @param {any} fallbackData - Mock data to return if backend is unavailable
  * @param {Function} [transformFn] - Optional transformer function applied to real API data
+ */
+export async function apiFetch(
+  endpoint,
+  method = "GET",
+  body = null,
+  transformFn = null
+) {
+  const json = await apiRequest(endpoint, method, body);
+  const data = json.data !== undefined ? json.data : json;
+  if (transformFn && typeof transformFn === "function") {
+    return transformFn(data);
+  }
+  return data;
+}
+
+/**
+ * Standard API request unwrap with safe error handling (returns null/empty, never dummy data).
  */
 export async function apiFetchWithFallback(
   endpoint,
@@ -105,35 +315,78 @@ export async function apiFetchWithFallback(
     }
     return data;
   } catch (err) {
-    // If backend is unreachable or throws, log debug and return provided fallback
     if (process.env.NODE_ENV !== "production") {
-      console.warn(
-        `[ShowMySkills API Fallback] ${method} ${endpoint} unreachable (${err.message}). Using mock data.`
-      );
+      console.warn(`[ShowMySkills API Error] ${method} ${endpoint}: ${err.message}`);
     }
     return fallbackData;
   }
 }
 
 // ─────────────────────────────────────────────────────────────
-// DOMAIN-SPECIFIC RESILIENT API SERVICES
+// DOMAIN-SPECIFIC DATABASE API SERVICES
 // ─────────────────────────────────────────────────────────────
 
 export const authService = {
   login: async (email, password, role) => {
-    return apiRequest("/auth/login", "POST", { email, password, role });
+    const res = await apiRequest("/auth/login", "POST", { email, password, role });
+    if (res?.data) {
+      tokenStorage.setTokens({
+        accessToken: res.data.accessToken || res.data.token,
+        refreshToken: res.data.refreshToken,
+      });
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(res.data));
+      }
+    }
+    return res;
   },
 
   register: async (userData) => {
-    return apiRequest("/auth/register", "POST", userData);
+    const res = await apiRequest("/auth/register", "POST", userData);
+    if (res?.data?.accessToken || res?.data?.token) {
+      tokenStorage.setTokens({
+        accessToken: res.data.accessToken || res.data.token,
+        refreshToken: res.data.refreshToken,
+      });
+    }
+    return res;
   },
 
-  getCurrentUser: async (fallbackUser = null) => {
-    return apiFetchWithFallback("/auth/me", "GET", null, fallbackUser);
+  getCurrentUser: async () => {
+    return apiFetchWithFallback("/auth/me", "GET", null, null);
+  },
+
+  updateCurrentUser: async (profileData) => {
+    return apiRequest("/auth/me", "PUT", profileData);
   },
 
   verifyEmail: async (email, otp) => {
-    return apiRequest("/auth/verify-email", "POST", { email, otp });
+    const res = await apiRequest("/auth/verify-email", "POST", { email, otp });
+    if (res?.data?.accessToken || res?.data?.token) {
+      tokenStorage.setTokens({
+        accessToken: res.data.accessToken || res.data.token,
+        refreshToken: res.data.refreshToken,
+      });
+    }
+    return res;
+  },
+
+  refresh: async () => {
+    return refreshTokensDirectly();
+  },
+
+  logout: async () => {
+    const refreshToken = tokenStorage.getRefreshToken();
+    try {
+      if (refreshToken) {
+        await apiRequest("/auth/logout", "POST", { refreshToken });
+      }
+    } catch {}
+    tokenStorage.clearTokens();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user");
+    }
+    return { success: true };
   },
 
   forgotPassword: async (email) => {
@@ -145,15 +398,71 @@ export const authService = {
   },
 };
 
-export const internshipService = {
-  list: async (params = {}, fallback = []) => {
-    const queryString = new URLSearchParams(params).toString();
-    const endpoint = queryString ? `/internships?${queryString}` : "/internships";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+export const bookmarkService = {
+  getMyBookmarks: async (type = null) => {
+    const endpoint = type ? `/bookmarks?type=${encodeURIComponent(type)}` : "/bookmarks";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
-  getById: async (id, fallback = null) => {
-    return apiFetchWithFallback(`/internships/${id}`, "GET", null, fallback);
+  toggleInternship: async (internshipId) => {
+    return apiRequest(`/bookmarks/internships/${internshipId}`, "POST");
+  },
+
+  toggleCandidate: async (candidateId) => {
+    return apiRequest(`/bookmarks/candidates/${candidateId}`, "POST");
+  },
+};
+
+export const skillService = {
+  list: async (category = null) => {
+    const endpoint = category ? `/skills?category=${encodeURIComponent(category)}` : "/skills";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
+  },
+
+  getById: async (id) => {
+    return apiFetchWithFallback(`/skills/${id}`, "GET", null, null);
+  },
+
+  submit: async (id, answers) => {
+    return apiRequest(`/skills/${id}/submit`, "POST", { answers });
+  },
+
+  getMySubmissions: async () => {
+    return apiFetchWithFallback("/skills/my-submissions", "GET", null, []);
+  },
+};
+
+export const collegeService = {
+  getStudents: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/users?role=student&${queryString}` : "/users?role=student";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
+  },
+
+  verifyStudentId: async (studentId, status = "approved") => {
+    return apiRequest(`/admin/verifications/${studentId}`, "PUT", { status });
+  },
+};
+
+export const verificationService = {
+  submit: async (verificationData) => {
+    return apiRequest("/verifications", "POST", verificationData);
+  },
+
+  getMyRequests: async () => {
+    return apiFetchWithFallback("/verifications/my-requests", "GET", null, []);
+  },
+};
+
+export const internshipService = {
+  list: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/internships?${queryString}` : "/internships";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
+  },
+
+  getById: async (id) => {
+    return apiFetchWithFallback(`/internships/${id}`, "GET", null, null);
   },
 
   create: async (internshipData) => {
@@ -161,180 +470,135 @@ export const internshipService = {
   },
 
   apply: async (internshipId, notes = "") => {
-    try {
-      return await apiRequest("/applications/apply", "POST", { internshipId, notes });
-    } catch {
-      // Fallback optimistic success for offline demo
-      return { success: true, message: "Application submitted successfully" };
-    }
+    return apiRequest("/applications/apply", "POST", { internshipId, notes });
   },
 
   toggleBookmark: async (internshipId) => {
-    try {
-      return await apiRequest(`/bookmarks/internships/${internshipId}`, "POST");
-    } catch {
-      return { success: true, bookmarked: true };
-    }
+    return apiRequest(`/bookmarks/internships/${internshipId}`, "POST");
   },
 };
 
 export const peopleService = {
-  list: async (params = {}, fallback = []) => {
+  list: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/users?${queryString}` : "/users";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
-  getById: async (id, fallback = null) => {
-    return apiFetchWithFallback(`/users/${id}`, "GET", null, fallback);
+  getById: async (id) => {
+    return apiFetchWithFallback(`/users/${id}`, "GET", null, null);
   },
 };
 
 export const applicationService = {
-  getMyApplications: async (fallback = []) => {
-    return apiFetchWithFallback("/applications/my-applications", "GET", null, fallback);
+  getMyApplications: async () => {
+    return apiFetchWithFallback("/applications/my-applications", "GET", null, []);
   },
 
-  getCompanyApplications: async (params = {}, fallback = []) => {
+  getCompanyApplications: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString
       ? `/applications/company-applications?${queryString}`
       : "/applications/company-applications";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   updateStatus: async (applicationId, status, notes = "") => {
-    try {
-      return await apiRequest(`/applications/${applicationId}/status`, "PUT", {
-        status,
-        notes,
-      });
-    } catch {
-      return { success: true, message: `Status updated to ${status}` };
-    }
+    return apiRequest(`/applications/${applicationId}/status`, "PUT", {
+      status,
+      notes,
+    });
   },
 };
 
 export const chatService = {
-  getConversations: async (fallback = []) => {
-    return apiFetchWithFallback("/chats/conversations", "GET", null, fallback);
+  getConversations: async () => {
+    return apiFetchWithFallback("/chats/conversations", "GET", null, []);
   },
 
-  getMessages: async (conversationId, fallback = []) => {
+  getMessages: async (conversationId) => {
     return apiFetchWithFallback(
       `/chats/conversations/${conversationId}/messages`,
       "GET",
       null,
-      fallback
+      []
     );
   },
 
   sendMessage: async (text, receiverId, conversationId = null) => {
-    try {
-      return await apiRequest("/chats/messages", "POST", {
-        text,
-        receiverId,
-        conversationId,
-      });
-    } catch {
-      return {
-        success: true,
-        data: {
-          id: `msg-${Date.now()}`,
-          text,
-          sender: "me",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      };
-    }
+    return apiRequest("/chats/messages", "POST", {
+      text,
+      receiverId,
+      conversationId,
+    });
   },
 };
 
 export const launchpadService = {
-  list: async (params = {}, fallback = []) => {
+  list: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/launchpad?${queryString}` : "/launchpad";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   recordClick: async (id) => {
-    try {
-      return await apiRequest(`/launchpad/${id}/click`, "POST");
-    } catch {
-      return { success: true };
-    }
+    return apiRequest(`/launchpad/${id}/click`, "POST");
   },
 };
 
 export const adminService = {
-  getOverview: async (fallback = null) => {
-    return apiFetchWithFallback("/admin/overview", "GET", null, fallback);
+  getOverview: async () => {
+    return apiFetchWithFallback("/admin/overview", "GET", null, null);
   },
 
-  getUsers: async (params = {}, fallback = []) => {
+  getUsers: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/admin/users?${queryString}` : "/admin/users";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   updateRoleTag: async (userId, roleTag) => {
-    try {
-      return await apiRequest(`/admin/users/${userId}/role-tag`, "PUT", { roleTag });
-    } catch {
-      return { success: true, message: `Role tag updated to ${roleTag}` };
-    }
+    return apiRequest(`/admin/users/${userId}/role-tag`, "PUT", { roleTag });
   },
 
   moderateInternship: async (internshipId, data) => {
-    try {
-      return await apiRequest(`/admin/internships/${internshipId}/moderate`, "PUT", data);
-    } catch {
-      return { success: true, message: "Internship moderation updated" };
-    }
+    return apiRequest(`/admin/internships/${internshipId}/moderate`, "PUT", data);
   },
 
-  getVerifications: async (params = {}, fallback = []) => {
+  getVerifications: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString
       ? `/admin/verifications?${queryString}`
       : "/admin/verifications";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   reviewVerification: async (verificationId, status, rejectionReason = "") => {
-    try {
-      return await apiRequest(`/admin/verifications/${verificationId}`, "PUT", {
-        status,
-        rejectionReason,
-      });
-    } catch {
-      return { success: true, message: `Verification ${status}` };
-    }
+    return apiRequest(`/admin/verifications/${verificationId}`, "PUT", {
+      status,
+      rejectionReason,
+    });
   },
 
-  getAnalytics: async (fallback = null) => {
-    return apiFetchWithFallback("/admin/analytics", "GET", null, fallback);
+  getAnalytics: async () => {
+    return apiFetchWithFallback("/admin/analytics", "GET", null, null);
   },
 };
 
 export const notificationService = {
-  list: async (fallback = []) => {
-    return apiFetchWithFallback("/notifications", "GET", null, fallback);
+  list: async () => {
+    return apiFetchWithFallback("/notifications", "GET", null, []);
   },
 
   markRead: async (notificationId = null) => {
-    try {
-      return await apiRequest("/notifications/mark-read", "PUT", { notificationId });
-    } catch {
-      return { success: true };
-    }
+    return apiRequest("/notifications/mark-read", "PUT", { notificationId });
   },
 };
 
 export const supportService = {
-  getFaqs: async (search = "", fallback = []) => {
+  getFaqs: async (search = "") => {
     const endpoint = search ? `/support/faqs?search=${encodeURIComponent(search)}` : "/support/faqs";
-    return apiFetchWithFallback(endpoint, "GET", null, fallback);
+    return apiFetchWithFallback(endpoint, "GET", null, []);
   },
 
   submitTicket: async (ticketData) => {

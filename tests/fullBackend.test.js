@@ -44,7 +44,7 @@ test('Backend Architecture: Profile Completion Percentage Calculator', () => {
   };
 
   const fullProfile = {
-    name: 'Joel A. Jacob',
+    name: 'Candidate User',
     headline: 'Frontend Engineer',
     bio: 'Passionate builder',
     skills: ['React', 'Next.js'],
@@ -147,6 +147,77 @@ test('Backend Monitoring: Real-time Telemetry Service & Snapshot Computation', a
   assert.ok(snapshot.requests.statusBreakdown['2xx'] >= 1);
   assert.strictEqual(typeof snapshot.performance.latencyMs.avg, 'number');
   assert.ok(Array.isArray(snapshot.topEndpoints));
+});
+
+test('JWT Security: Access token and refresh token generation and payload structure', async () => {
+  const jwt = (await import('../api/node_modules/jsonwebtoken/index.js')).default;
+  const secret = 'test_secret_for_tokens_2026';
+  const refreshSecret = `${secret}_refresh_showmyskills_secret`;
+
+  const user = {
+    _id: '67bb8e7d206f4a38b9c1d001',
+    email: 'user@example.edu',
+    role: 'student',
+    roleTag: 'Maintainer',
+  };
+
+  const accessToken = jwt.sign(
+    {
+      sub: user._id,
+      email: user.email,
+      role: user.role,
+      roleTag: user.roleTag,
+    },
+    secret,
+    { expiresIn: '15m' }
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      sub: user._id,
+      type: 'refresh',
+      jti: 'random-unique-jti-12345',
+    },
+    refreshSecret,
+    { expiresIn: '7d' }
+  );
+
+  // Validate access token decoding
+  const decodedAccess = jwt.verify(accessToken, secret);
+  assert.strictEqual(decodedAccess.sub, user._id);
+  assert.strictEqual(decodedAccess.email, user.email);
+  assert.strictEqual(decodedAccess.role, user.role);
+  assert.strictEqual(decodedAccess.roleTag, user.roleTag);
+  assert.ok(decodedAccess.exp > decodedAccess.iat);
+
+  // Validate refresh token decoding
+  const decodedRefresh = jwt.verify(refreshToken, refreshSecret);
+  assert.strictEqual(decodedRefresh.sub, user._id);
+  assert.strictEqual(decodedRefresh.type, 'refresh');
+  assert.ok(decodedRefresh.exp - decodedRefresh.iat >= 7 * 24 * 60 * 60 - 5);
+
+  // Access token cannot be verified with refresh secret (key separation)
+  assert.throws(() => jwt.verify(accessToken, refreshSecret));
+  // Refresh token cannot be verified with access secret
+  assert.throws(() => jwt.verify(refreshToken, secret));
+});
+
+test('JWT Security: TokenExpiredError is properly identified for auto-refresh', async () => {
+  const jwt = (await import('../api/node_modules/jsonwebtoken/index.js')).default;
+  const secret = 'test_secret_for_tokens_2026';
+
+  // Issue expired token (-1s)
+  const expiredToken = jwt.sign({ sub: '123' }, secret, { expiresIn: -1 });
+
+  let capturedError = null;
+  try {
+    jwt.verify(expiredToken, secret);
+  } catch (err) {
+    capturedError = err;
+  }
+
+  assert.ok(capturedError);
+  assert.strictEqual(capturedError.name, 'TokenExpiredError');
 });
 
 

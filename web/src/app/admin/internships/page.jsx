@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Sparkles,
   Building2,
   MapPin,
   ExternalLink,
@@ -26,96 +25,9 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { internshipService, adminService, apiRequest } from "@/services/apiClient";
 
-const initialInternships = [
-  {
-    id: "int-101",
-    company: "WebShark Web Services",
-    role: "UI/UX Design Intern",
-    location: "Bangalore, India",
-    mode: "hybrid",
-    stipend: "₹15,000 - ₹20,000 / mo",
-    duration: "6 Months",
-    postedDate: "Oct 24, 2026",
-    status: "active",
-    isVerified: true,
-    isFeatured: true,
-    applicantsCount: 42,
-    skills: ["Figma", "UI/UX", "User Research", "Wireframing"],
-    applicationUrl: "https://webshark.io/careers/ui-ux",
-    description: "Lead user research, prototype design systems, and collaborate with product engineers.",
-  },
-  {
-    id: "int-102",
-    company: "TechNova Solutions",
-    role: "Frontend Developer Intern",
-    location: "Remote, India",
-    mode: "remote",
-    stipend: "₹20,000 - ₹25,000 / mo",
-    duration: "3 Months",
-    postedDate: "Oct 23, 2026",
-    status: "active",
-    isVerified: true,
-    isFeatured: false,
-    applicantsCount: 89,
-    skills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
-    applicationUrl: "https://technova.io/careers/frontend",
-    description: "Develop responsive client interfaces, optimize web vital scores, and build reusable UI components.",
-  },
-  {
-    id: "int-103",
-    company: "CloudPeak Analytics",
-    role: "Data Science Intern",
-    location: "Hyderabad, India",
-    mode: "onsite",
-    stipend: "₹18,000 - ₹22,000 / mo",
-    duration: "4 Months",
-    postedDate: "Oct 22, 2026",
-    status: "pending_review",
-    isVerified: false,
-    isFeatured: false,
-    applicantsCount: 16,
-    skills: ["Python", "Pandas", "TensorFlow", "SQL"],
-    applicationUrl: "https://cloudpeak.com/internships/ds",
-    description: "Build machine learning models, analyze dataset distributions, and report predictive KPI telemetry.",
-  },
-  {
-    id: "int-104",
-    company: "FinEdge Technologies",
-    role: "Backend Engineering Intern",
-    location: "Mumbai, India",
-    mode: "hybrid",
-    stipend: "₹25,000 - ₹30,000 / mo",
-    duration: "6 Months",
-    postedDate: "Oct 21, 2026",
-    status: "active",
-    isVerified: true,
-    isFeatured: true,
-    applicantsCount: 65,
-    skills: ["Node.js", "Express", "PostgreSQL", "Docker"],
-    applicationUrl: "https://finedge.tech/careers/backend",
-    description: "Design fault-tolerant REST APIs, structure relational database schemas, and integrate microservices.",
-  },
-  {
-    id: "int-105",
-    company: "DevSprint Labs",
-    role: "DevOps & Cloud Infrastructure Intern",
-    location: "Pune, India",
-    mode: "remote",
-    stipend: "₹22,000 - ₹28,000 / mo",
-    duration: "6 Months",
-    postedDate: "Oct 20, 2026",
-    status: "suspended",
-    isVerified: false,
-    isFeatured: false,
-    applicantsCount: 7,
-    skills: ["Kubernetes", "AWS", "CI/CD", "Terraform"],
-    applicationUrl: "https://devsprint.io/jobs/devops",
-    description: "Automate build deployment pipelines, monitor cluster uptime, and optimize cloud server expenditure.",
-  },
-];
-
 export default function AdminInternshipsPage() {
-  const [internships, setInternships] = useState(initialInternships);
+  const [internships, setInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedJob, setSelectedJob] = useState(null);
@@ -123,10 +35,31 @@ export default function AdminInternshipsPage() {
 
   useEffect(() => {
     let isMounted = true;
-    internshipService.list({}, initialInternships).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
-        setInternships(res);
+    setLoading(true);
+    internshipService.list({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
+        const mapped = res.map((item) => ({
+          id: item._id || item.id,
+          company: item.company,
+          role: item.role,
+          location: item.location || "Remote",
+          mode: item.mode || "remote",
+          stipend: item.stipendText || (item.stipendMin ? `₹${item.stipendMin} - ₹${item.stipendMax} / mo` : "Competitive"),
+          duration: item.duration || "3 Months",
+          postedDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent",
+          status: item.status || "active",
+          isVerified: item.isVerified ?? true,
+          isFeatured: item.isFeatured ?? false,
+          applicantsCount: item.applicantsCount || 0,
+          skills: item.skills || [],
+          applicationUrl: item.applicationUrl || "",
+          description: item.description || "",
+        }));
+        setInternships(mapped);
       }
+      setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;
@@ -271,7 +204,7 @@ export default function AdminInternshipsPage() {
                 <h3 className="text-2xl font-extrabold text-[#4B9C93] mt-1">{counts.featured}</h3>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-[#E6F7F3] text-[#4B9C93] flex items-center justify-center">
-                <Sparkles className="w-6 h-6" />
+                <Star className="w-6 h-6" />
               </div>
             </div>
           </div>
@@ -346,7 +279,7 @@ export default function AdminInternshipsPage() {
                               </span>
                               {job.isFeatured && (
                                 <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold border border-amber-200">
-                                  <Sparkles className="w-3 h-3 text-amber-500" />
+                                  <Star className="w-3 h-3 text-amber-500" />
                                   Featured
                                 </span>
                               )}

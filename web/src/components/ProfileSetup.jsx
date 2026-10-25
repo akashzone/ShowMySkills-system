@@ -130,9 +130,8 @@ export function ProfileSetup({ role, config }) {
         role,
       });
       setSaveMessage("Profile setup saved successfully!");
-    } catch {
-      // Offline fallback: save locally
-      setSaveMessage("Profile setup saved successfully!");
+    } catch (err) {
+      setSaveMessage(err.message || "Failed to save profile. Please try again.");
     }
   };
 

@@ -33,11 +33,11 @@ const signupRoleConfigs = {
     title: "College Sign up",
     tagline: "Improve placement outcomes and manage\nstudent talent with showmyskills",
     nameLabel: "College Name",
-    namePlaceholder: "e.g. CBIT College",
+    namePlaceholder: "e.g. National Institute of Technology",
     emailLabel: "College Email Address",
     emailPlaceholder: "admin@college.edu",
     hasWebsite: true,
-    websitePlaceholder: "e.g. https://cbitcollege.com",
+    websitePlaceholder: "e.g. https://university.edu",
     illustration: "/Signup/Company.png",
     dashboardRoute: "/college/dashboard",
   },
@@ -541,21 +541,13 @@ function SignupFormContent() {
           JSON.stringify(res.user || { name: fullName, email, role: activeRole })
         );
       }
-    } catch (err) {
-      // Backend offline or error: fallback gracefully to local session simulation
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Backend offline or registration warning, falling back:", err.message);
-      }
-      localStorage.setItem("showmyskills_token", `mock-token-${Date.now()}`);
-      localStorage.setItem(
-        "showmyskills_user",
-        JSON.stringify({ name: fullName, email, role: activeRole })
-      );
-    } finally {
       setTimeout(() => {
         setLoading(false);
         router.push(config.dashboardRoute);
-      }, 600);
+      }, 400);
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || "Failed to create account. Please try again.");
     }
   };
 

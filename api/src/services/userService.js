@@ -1,8 +1,57 @@
+import mongoose from 'mongoose';
 import { generateOtp } from '../utils/otp.js';
 import { emailService } from './emailService.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
+
+const getJwtSecrets = () => {
+  const jwtSecret = process.env.JWT_SECRET || 'dev_secret_key_showmyskills_2026';
+  const refreshSecret =
+    process.env.JWT_REFRESH_SECRET || `${jwtSecret}_refresh_showmyskills_secret`;
+  return { jwtSecret, refreshSecret };
+};
+
+export const generateTokenPair = async (user) => {
+  const { jwtSecret, refreshSecret } = getJwtSecrets();
+
+  const accessToken = jwt.sign(
+    {
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      roleTag: user.roleTag,
+    },
+    jwtSecret,
+    { expiresIn: '15m' }
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      sub: user._id.toString(),
+      type: 'refresh',
+      jti: Math.random().toString(36).substring(2) + Date.now().toString(36),
+    },
+    refreshSecret,
+    { expiresIn: '7d' }
+  );
+
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const now = new Date();
+
+  // Retain only valid tokens and append new refresh token (max 10 sessions)
+  const validTokens = (user.refreshTokens || []).filter((t) => t.expiresAt > now);
+  validTokens.push({ token: refreshToken, expiresAt, createdAt: now });
+  user.refreshTokens = validTokens.slice(-10);
+
+  await user.save();
+
+  return {
+    accessToken,
+    refreshToken,
+    token: accessToken, // backward compatibility
+  };
+};
 
 export const userService = {
   authenticate: async (email, password, role = null) => {
@@ -12,19 +61,17 @@ export const userService = {
       throw error;
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
     const query = {
-      email: String(email).trim().toLowerCase(),
+      email: normalizedEmail,
     };
     if (role) {
       query.role = role;
     }
 
-    let user = await User.findOne(query);
-
-    // If role was specified but didn't match, search without role filter
-    if (!user && role) {
-      user = await User.findOne({ email: String(email).trim().toLowerCase() });
-    }
+    const user =
+      (await User.findOne(query)) ||
+      (role ? await User.findOne({ email: normalizedEmail }) : null);
 
     if (!user) {
       const error = new Error('Invalid email or password');
@@ -33,28 +80,17 @@ export const userService = {
     }
 
     const passwordMatches = await bcrypt.compare(password, user.password);
-
     if (!passwordMatches) {
       const error = new Error('Invalid email or password');
       error.statusCode = 401;
       throw error;
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'dev_secret_key_showmyskills_2026';
-
-    const token = jwt.sign(
-      {
-        sub: user._id.toString(),
-        email: user.email,
-        role: user.role,
-        roleTag: user.roleTag,
-      },
-      jwtSecret,
-      { expiresIn: '7d' }
-    );
+    const tokens = await generateTokenPair(user);
 
     const userObj = user.toObject();
     delete userObj.password;
+    delete userObj.refreshTokens;
     delete userObj.emailVerificationOtp;
     delete userObj.emailVerificationOtpExpires;
     delete userObj.passwordResetOtp;
@@ -63,8 +99,84 @@ export const userService = {
     return {
       id: user._id.toString(),
       ...userObj,
-      token,
+      ...tokens,
     };
+  },
+
+  refreshAccessToken: async (refreshToken) => {
+    if (!refreshToken) {
+      const error = new Error('Refresh token is required');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const { refreshSecret } = getJwtSecrets();
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, refreshSecret);
+    } catch (err) {
+      const error = new Error('Invalid or expired refresh token');
+      error.statusCode = 401;
+      error.code = 'REFRESH_TOKEN_EXPIRED';
+      throw error;
+    }
+
+    const user = await User.findById(decoded.sub);
+    if (!user) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const tokenRecordIndex = (user.refreshTokens || []).findIndex(
+      (t) => t.token === refreshToken && t.expiresAt > new Date()
+    );
+
+    if (tokenRecordIndex === -1) {
+      const error = new Error('Refresh token has been revoked or expired');
+      error.statusCode = 401;
+      error.code = 'REFRESH_TOKEN_REVOKED';
+      throw error;
+    }
+
+    // Remove consumed refresh token for rotation
+    user.refreshTokens.splice(tokenRecordIndex, 1);
+
+    const tokens = await generateTokenPair(user);
+
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.refreshTokens;
+    delete userObj.emailVerificationOtp;
+    delete userObj.emailVerificationOtpExpires;
+    delete userObj.passwordResetOtp;
+    delete userObj.passwordResetOtpExpires;
+
+    return {
+      ...tokens,
+      user: {
+        id: user._id.toString(),
+        ...userObj,
+      },
+    };
+  },
+
+  revokeRefreshToken: async (refreshToken) => {
+    if (!refreshToken) return;
+    const { refreshSecret } = getJwtSecrets();
+
+    try {
+      const decoded = jwt.verify(refreshToken, refreshSecret);
+      await User.findByIdAndUpdate(decoded.sub, {
+        $pull: { refreshTokens: { token: refreshToken } },
+      });
+    } catch {
+      await User.updateMany(
+        { 'refreshTokens.token': refreshToken },
+        { $pull: { refreshTokens: { token: refreshToken } } }
+      );
+    }
   },
 
   createUser: async (userData) => {
@@ -174,14 +286,18 @@ export const userService = {
     user.emailVerificationOtp = null;
     user.emailVerificationOtpExpires = null;
 
-    await user.save();
+    const tokens = await generateTokenPair(user);
 
     const userResponse = user.toObject();
     delete userResponse.password;
+    delete userResponse.refreshTokens;
     delete userResponse.emailVerificationOtp;
     delete userResponse.emailVerificationOtpExpires;
 
-    return userResponse;
+    return {
+      ...userResponse,
+      ...tokens,
+    };
   },
 
   sendPasswordResetOtp: async (email) => {
@@ -292,6 +408,9 @@ export const userService = {
       'linkedinUrl',
       'companyProfile',
       'collegeProfile',
+      'notificationPreferences',
+      'privacyPreferences',
+      'twoFactorEnabled',
     ];
 
     const updateData = {};
@@ -299,6 +418,34 @@ export const userService = {
       if (data[key] !== undefined) {
         updateData[key] = data[key];
       }
+    }
+
+    // Map common aliases from frontend forms
+    if (data.github && !updateData.githubUrl) updateData.githubUrl = data.github;
+    if (data.linkedin && !updateData.linkedinUrl) updateData.linkedinUrl = data.linkedin;
+    if (data.department && !updateData.branch) updateData.branch = data.department;
+    if (data.about && !updateData.bio) updateData.bio = data.about;
+    if (data.collegeName && !updateData.college) updateData.college = data.collegeName;
+    if (data.gradYear && !updateData.graduationYear) updateData.graduationYear = Number(data.gradYear);
+
+    // If password change is requested in profile/settings
+    const currentPass = data.currentPassword || data.passwords?.current;
+    const newPass = data.newPassword || data.passwords?.newPass;
+    if (currentPass && newPass) {
+      const user = await User.findById(userId);
+      const matches = await bcrypt.compare(currentPass, user.password);
+      if (!matches) {
+        const error = new Error('Current password is incorrect');
+        error.statusCode = 400;
+        throw error;
+      }
+      if (newPass.length < 6) {
+        const error = new Error('New password must be at least 6 characters');
+        error.statusCode = 400;
+        throw error;
+      }
+      user.password = await bcrypt.hash(newPass, 10);
+      await user.save();
     }
 
     // Auto calculate completion percentage
@@ -312,7 +459,7 @@ export const userService = {
     updateData.completionPercentage = Math.min(100, Math.max(30, completedPoints));
 
     const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true }).select(
-      '-password -emailVerificationOtp -passwordResetOtp'
+      '-password -emailVerificationOtp -passwordResetOtp -refreshTokens'
     );
 
     return updatedUser;
@@ -380,7 +527,7 @@ export const userService = {
     const [users, total] = await Promise.all([
       User.find(filter)
         .select('-password -emailVerificationOtp -passwordResetOtp')
-        .sort({ reputationScore: -1, createdAt: -1 })
+        .sort({ displayOrder: 1, createdAt: 1 })
         .skip(skip)
         .limit(Number(limit)),
       User.countDocuments(filter),

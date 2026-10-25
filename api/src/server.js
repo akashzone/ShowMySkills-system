@@ -24,10 +24,15 @@ process.on('uncaughtException', (err) => {
 });
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('Initial MongoDB connection error (server running in degraded mode):', err.message);
+  }
 
   const server = app.listen(PORT, () => {
     console.log(`🚀 Express API server running on port ${PORT}`);
+    console.log(`🩺 Healthcheck endpoints: http://localhost:${PORT}/api/health & http://localhost:${PORT}/health`);
     console.log(`🛡️  Security layers initialized: Helmet, RateLimiting, CORS, NoSQL/XSS Sanitizer`);
   });
 

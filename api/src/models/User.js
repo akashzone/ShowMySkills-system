@@ -88,6 +88,10 @@ const userSchema = new mongoose.Schema(
       enum: ['Admin', 'Maintainer', 'Promoter', 'Contributor', 'Ambassador', 'Regular'],
       default: 'Regular',
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
     headline: {
       type: String,
       default: '',
@@ -302,6 +306,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    refreshTokens: [
+      {
+        token: { type: String, required: true },
+        expiresAt: { type: Date, required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

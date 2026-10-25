@@ -19,142 +19,51 @@ import DashboardHeader from "@/components/DashboardHeader";
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
 import { adminService } from "@/services/apiClient";
 
-const initialStudents = [
-  {
-    id: 1,
-    name: "Joel A. Jacob",
-    email: "joel.jacob@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Computer Science (AI & ML)",
-    tag: "Maintainer",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/5a82e47de052e6b1e8a0daf000f4c7f2631701fe?width=180",
-    score: 23,
-  },
-  {
-    id: 2,
-    name: "S SIDHARTH",
-    email: "sidharth.s@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    tag: "Admin",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ab8e554398afb86403d2a7da0c420fe67c60f085?width=180",
-    score: 63,
-  },
-  {
-    id: 3,
-    name: "Reshma Udhayan",
-    email: "reshma.u@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    tag: "Promoter",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/c3059191c12486377929540d913e78b03ba9bddc?width=180",
-    score: 72,
-  },
-  {
-    id: 4,
-    name: "Vaishnav RL",
-    email: "vaishnav.rl@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    tag: "Ambassador",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/46fce00ed55aca498d8347d953abdc65e3ba2655?width=180",
-    score: 81,
-  },
-  {
-    id: 5,
-    name: "Abhay SA",
-    email: "abhay.sa@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    tag: "Contributor",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/f7559f012fcf86117c87ef912259ea3d4b2467c5?width=180",
-    score: 72,
-  },
-  {
-    id: 6,
-    name: "Rishi Chandran",
-    email: "rishi.c@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    tag: "Ambassador",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/ffe52c79545b2a85e56e27f28c8198d4551e8795?width=180",
-    score: 81,
-  },
-  {
-    id: 7,
-    name: "asher john",
-    email: "asher.john@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Computer Science (AI & ML)",
-    tag: "Promoter",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/c108ffdec7504150607ccddcecf48749b1c50f54?width=180",
-    score: 23,
-  },
-  {
-    id: 8,
-    name: "Devikripa S",
-    email: "devikripa.s@cet.ac.in",
-    college: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    tag: "Contributor",
-    avatar: "https://api.builder.io/api/v1/image/assets/TEMP/a5bb5f84222369dfc64ce1f696c04fdc36d5fa89?width=180",
-    score: 63,
-  },
-];
-
-const kpis = [
-  { label: "Registered Students", value: "12,480", status: "+480 this week", icon: Users, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
-  { label: "Partner Companies", value: "340", status: "24 awaiting approval", icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "Active Internships", value: "892", status: "98% verified", icon: Briefcase, color: "text-purple-600", bg: "bg-purple-50" },
-  { label: "Skills Verified", value: "4,620", status: "+120 today", icon: CheckCircle, color: "text-amber-600", bg: "bg-amber-50" },
-];
-
-const pendingVerifications = [
-  { id: 1, name: "Joel A. Jacob", college: "CET", skill: "Full Stack React / Next.js", score: "93%", type: "Assessment Audit", date: "Oct 19" },
-  { id: 2, name: "S Sidharth", college: "CET", skill: "Product Design & Systems", score: "96%", type: "Portfolio Review", date: "Oct 19" },
-  { id: 3, name: "CBIT College", college: "Hyderabad", skill: "Institutional Placement Handle", score: "Verified", type: "College Accreditation", date: "Oct 18" },
-  { id: 4, name: "xphy Technologies", college: "Bengaluru", skill: "Employer Hiring License", score: "Verified", type: "Company Verification", date: "Oct 18" },
-];
-
-const initialAdminApplications = [
-  {
-    id: "app-101",
-    name: "Alex Morgan",
-    email: "alex.morgan@domain.com",
-    phone: "+1 (555) 345-6789",
-    dob: "1997-04-12",
-    recommendedBy: "S Sidharth (Core Admin)",
-    photoUrl: "/Signup/Admin.png",
-    photoConsent: true,
-    notes: "Experienced systems engineer applying to manage core platform operations.",
-    emailVerified: true,
-    officialOtpVerified: true,
-    status: "pending",
-    date: "Oct 24",
-  },
-];
-
 export default function AdminDashboardPage() {
-  const [verifications, setVerifications] = useState(pendingVerifications);
-  const [adminApplications, setAdminApplications] = useState(initialAdminApplications);
-  const [students, setStudents] = useState(initialStudents);
+  const [verifications, setVerifications] = useState([]);
+  const [adminApplications, setAdminApplications] = useState([]);
+  const [students, setStudents] = useState([]);
   const [selectedTagFilter, setSelectedTagFilter] = useState("all");
   const [studentSearch, setStudentSearch] = useState("");
   const [tagToast, setTagToast] = useState("");
   const [adminActionToast, setAdminActionToast] = useState("");
+  const [overview, setOverview] = useState({
+    totalStudents: 0,
+    totalCompanies: 0,
+    totalInternships: 0,
+    totalApplications: 0,
+  });
 
   useEffect(() => {
     let isMounted = true;
-    adminService.getUsers({ role: "student" }, initialStudents).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
-        setStudents(res);
+    adminService.getOverview().then((res) => {
+      if (isMounted && res) {
+        setOverview(res);
       }
-    });
-    adminService.getVerifications({}, pendingVerifications).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    }).catch(() => {});
+
+    adminService.getUsers({ role: "student" }).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
+        const mapped = res.map((u, i) => ({
+          id: u._id || u.id || i + 1,
+          name: u.name,
+          email: u.email,
+          college: u.college || "",
+          department: u.branch || u.course || "",
+          tag: u.roleTag || "Student",
+          avatar: u.profileIcon || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Student")}&background=4B9C93&color=fff&size=180`,
+          score: u.reputationScore ?? u.score ?? 0,
+        }));
+        setStudents(mapped);
+      }
+    }).catch(() => {});
+
+    adminService.getVerifications({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         setVerifications(res);
       }
-    });
+    }).catch(() => {});
+
     return () => {
       isMounted = false;
     };
@@ -258,27 +167,38 @@ export default function AdminDashboardPage() {
           )}
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {kpis.map(({ label, value, status, icon: Icon, color, bg }) => (
-              <div
-                key={label}
-                className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex flex-col justify-between"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    {label}
-                  </span>
-                  <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
-                    <Icon className="w-5 h-5" />
+          {(() => {
+            const kpiList = [
+              { label: "Registered Students", value: (overview.totalStudents ?? 0).toLocaleString(), status: "Live campus students", icon: Users, color: "text-[#4B9C93]", bg: "bg-[#E6F7F3]" },
+              { label: "Partner Companies", value: (overview.totalCompanies ?? 0).toLocaleString(), status: "Registered employers", icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Active Internships", value: (overview.totalInternships ?? 0).toLocaleString(), status: "Open positions", icon: Briefcase, color: "text-purple-600", bg: "bg-purple-50" },
+              { label: "Applications Tracked", value: (overview.totalApplications ?? 0).toLocaleString(), status: "Total student submissions", icon: CheckCircle, color: "text-amber-600", bg: "bg-amber-50" },
+            ];
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {kpiList.map(({ label, value, status, icon: Icon, color, bg }) => (
+                  <div
+                    key={label}
+                    className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        {label}
+                      </span>
+                      <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-extrabold text-gray-900">{value}</div>
+                      <div className="text-xs text-emerald-600 font-medium mt-1">{status}</div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-extrabold text-gray-900">{value}</div>
-                  <div className="text-xs text-emerald-600 font-medium mt-1">{status}</div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* ──── Admin Access Requests Review (Core Admin Authorization) ──── */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden mb-8">

@@ -51,6 +51,7 @@ export default function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wider">Resources</h4>
           <ul className="space-y-2 text-xs">
+            <li><Link href="/error" className="hover:text-white transition-colors flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>System Status & Health</span></Link></li>
             <li><a href="https://showmyskills.xyphx.com/api/docs" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Swagger API Specs</a></li>
             <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
             <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>

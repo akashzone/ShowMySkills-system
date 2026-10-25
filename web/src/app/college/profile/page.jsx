@@ -26,54 +26,37 @@ import { authService } from "@/services/apiClient";
 export default function CollegeProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    collegeName: "Chaitanya Bharathi Institute of Technology",
-    tagline: "Autonomous Institution Affiliated with Osmania University",
-    about:
-      "Chaitanya Bharathi Institute of Technology (CBIT) is one of the premier autonomous engineering colleges in Telangana, India. With world-class laboratories, eminent faculty, and strong industry linkages, CBIT prepares future engineers for high-impact careers in software engineering, artificial intelligence, and cutting-edge robotics.",
-    establishedYear: 1979,
-    nirfRank: "Rank 120-150 Band in Engineering",
-    accreditation: "NAAC A++ Grade, NBA Accredited (All UG Programs)",
-    location: "Gandipet, Hyderabad, Telangana - 500075",
-    email: "principal@cbit.ac.in",
-    tpoEmail: "placements@cbit.ac.in",
-    phone: "+91 84669 97201",
-    website: "https://www.cbit.ac.in",
-    linkedin: "https://linkedin.com/school/cbit-hyderabad",
-    totalStudents: 4800,
-    placementRate: "92.4%",
-    highestPackage: "48 LPA (Microsoft)",
-    averagePackage: "8.6 LPA",
-    departments: [
-      "Computer Science & Engineering",
-      "Artificial Intelligence & Machine Learning",
-      "Information Technology",
-      "Electronics & Communication Engineering",
-      "Electrical & Electronics Engineering",
-      "Mechanical Engineering",
-      "Civil Engineering",
-      "Biotechnology",
-    ],
-    topRecruiters: [
-      "Google Cloud",
-      "Microsoft",
-      "Amazon Web Services",
-      "WebShark Technologies",
-      "Razorpay",
-      "Oracle",
-      "Deloitte",
-      "Goldman Sachs",
-    ],
+    collegeName: "",
+    tagline: "",
+    about: "",
+    establishedYear: "",
+    nirfRank: "Not ranked",
+    accreditation: "Pending accreditation",
+    location: "",
+    email: "",
+    tpoEmail: "",
+    phone: "",
+    website: "",
+    linkedin: "",
+    totalStudents: 0,
+    placementRate: "0%",
+    highestPackage: "—",
+    averagePackage: "—",
+    departments: [],
+    topRecruiters: [],
   });
 
   useEffect(() => {
     let isMounted = true;
-    authService.getCurrentUser(null).then((user) => {
+    authService.getCurrentUser().then((user) => {
       if (isMounted && user) {
         setProfile((prev) => ({
           ...prev,
-          collegeName: user.name || prev.collegeName,
+          collegeName: user.collegeProfile?.collegeName || user.name || prev.collegeName,
           email: user.email || prev.email,
           location: user.location || prev.location,
+          website: user.website || prev.website,
+          about: user.bio || prev.about,
         }));
       }
     });
@@ -224,15 +207,19 @@ export default function CollegeProfilePage() {
                   Academic Departments & Engineering Faculties
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {profile.departments.map((dept) => (
-                    <div
-                      key={dept}
-                      className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center gap-2.5 text-xs font-semibold text-slate-800"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-[#2b8a78]" />
-                      <span>{dept}</span>
-                    </div>
-                  ))}
+                  {profile.departments.length === 0 ? (
+                    <p className="text-xs text-slate-400">No departments configured yet.</p>
+                  ) : (
+                    profile.departments.map((dept) => (
+                      <div
+                        key={dept}
+                        className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center gap-2.5 text-xs font-semibold text-slate-800"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-[#2b8a78]" />
+                        <span>{dept}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -242,15 +229,19 @@ export default function CollegeProfilePage() {
                   Key Corporate Recruiting Partners
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {profile.topRecruiters.map((company) => (
-                    <span
-                      key={company}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center gap-1.5"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      {company}
-                    </span>
-                  ))}
+                  {profile.topRecruiters.length === 0 ? (
+                    <p className="text-xs text-slate-400">No recruiting partners configured yet.</p>
+                  ) : (
+                    profile.topRecruiters.map((company) => (
+                      <span
+                        key={company}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        {company}
+                      </span>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

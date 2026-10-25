@@ -10,7 +10,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 import { authService } from "@/services/apiClient";
 
@@ -31,13 +30,11 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await authService.forgotPassword(email);
-    } catch {
-      // Offline fallback: continue simulation
+      setStep(2);
+    } catch (err) {
+      setError(err.message || "Failed to send reset code. Please check your email.");
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setStep(2);
-      }, 500);
+      setLoading(false);
     }
   };
 
@@ -83,13 +80,11 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await authService.resetPassword(email, otp.join(""), newPassword);
-    } catch {
-      // Offline fallback: continue simulation
+      setStep(4);
+    } catch (err) {
+      setError(err.message || "Failed to reset password. Please try again.");
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setStep(4);
-      }, 500);
+      setLoading(false);
     }
   };
 

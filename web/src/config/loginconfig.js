@@ -64,7 +64,7 @@ export const loginConfigs = {
         id: "collegeName",
         label: "College Name",
         type: "text",
-        placeholder: "e.g. CBIT College",
+        placeholder: "e.g. National Institute of Technology",
         icon: "building",
       },
       {
