@@ -22,81 +22,9 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { adminService } from "@/services/apiClient";
 
-const initialVerifications = [
-  {
-    id: "ver-101",
-    applicantName: "Joel A. Jacob",
-    applicantEmail: "joel.jacob@cet.ac.in",
-    role: "student",
-    type: "College ID Document",
-    institution: "College of Engineering Trivandrum",
-    department: "Computer Science (AI & ML)",
-    submittedDate: "Oct 24, 2026",
-    status: "pending",
-    docPreview: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80",
-    docName: "CET_College_ID_Card_2026.pdf",
-    notes: "Batch 2026 undergraduate candidate seeking official verified badge for campus placements.",
-  },
-  {
-    id: "ver-102",
-    applicantName: "S SIDHARTH",
-    applicantEmail: "sidharth.s@cet.ac.in",
-    role: "student",
-    type: "College ID Document",
-    institution: "College of Engineering Trivandrum",
-    department: "Industrial Engineering",
-    submittedDate: "Oct 23, 2026",
-    status: "approved",
-    docPreview: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80",
-    docName: "CET_Identity_Card_Sidharth.jpg",
-    notes: "Verified against university enrollment register on Oct 23.",
-  },
-  {
-    id: "ver-103",
-    applicantName: "WebShark Recruitment Team",
-    applicantEmail: "recruitment@webshark.io",
-    role: "company",
-    type: "Corporate Entity Verification",
-    institution: "WebShark Web Services Pvt Ltd",
-    department: "Human Resources",
-    submittedDate: "Oct 22, 2026",
-    status: "pending",
-    docPreview: "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=80",
-    docName: "Certificate_of_Incorporation_WebShark.pdf",
-    notes: "Corporate domain webshark.io validated. Awaiting core admin sign-off.",
-  },
-  {
-    id: "ver-104",
-    applicantName: "Ananya Sharma",
-    applicantEmail: "ananya.sharma@iitm.ac.in",
-    role: "student",
-    type: "Skill Assessment Proof",
-    institution: "IIT Madras",
-    department: "Data Science & AI",
-    submittedDate: "Oct 21, 2026",
-    status: "pending",
-    docPreview: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=600&auto=format&fit=crop&q=80",
-    docName: "TensorFlow_Developer_Certificate.pdf",
-    notes: "Submitted score 96% in Advanced Machine Learning assessment.",
-  },
-  {
-    id: "ver-105",
-    applicantName: "Rahul Verma",
-    applicantEmail: "rahul.v@bits-pilani.ac.in",
-    role: "student",
-    type: "College ID Document",
-    institution: "BITS Pilani",
-    department: "Computer Science",
-    submittedDate: "Oct 20, 2026",
-    status: "rejected",
-    docPreview: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80",
-    docName: "ID_Expired_Scan.jpg",
-    notes: "Document scan was illegible; student requested to upload high resolution color scan.",
-  },
-];
-
 export default function AdminVerificationsPage() {
-  const [verifications, setVerifications] = useState(initialVerifications);
+  const [verifications, setVerifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedVer, setSelectedVer] = useState(null);
@@ -105,10 +33,14 @@ export default function AdminVerificationsPage() {
 
   useEffect(() => {
     let isMounted = true;
-    adminService.getVerifications({}, initialVerifications).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    setLoading(true);
+    adminService.getVerifications({}).then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         setVerifications(res);
       }
+      setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;

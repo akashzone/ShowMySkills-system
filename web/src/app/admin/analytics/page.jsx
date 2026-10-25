@@ -92,12 +92,12 @@ export default function AdminAnalyticsPage() {
 
   useEffect(() => {
     let isMounted = true;
-    adminService.getOverview(null).then((overview) => {
+    adminService.getOverview().then((overview) => {
       if (isMounted && overview) {
         setStatsData([
           {
             title: "Registered Students",
-            value: (overview.totalStudents || 14820).toLocaleString(),
+            value: (overview.totalStudents ?? 0).toLocaleString(),
             change: "+18.4% from last month",
             isPositive: true,
             icon: Users,
@@ -106,7 +106,7 @@ export default function AdminAnalyticsPage() {
           },
           {
             title: "Partner Companies",
-            value: (overview.totalCompanies || 348).toLocaleString(),
+            value: (overview.totalCompanies ?? 0).toLocaleString(),
             change: "+24 new this quarter",
             isPositive: true,
             icon: Building2,
@@ -115,7 +115,7 @@ export default function AdminAnalyticsPage() {
           },
           {
             title: "Active Internships",
-            value: (overview.totalInternships || 1260).toLocaleString(),
+            value: (overview.totalInternships ?? 0).toLocaleString(),
             change: "+12.1% active listings",
             isPositive: true,
             icon: Briefcase,
@@ -124,7 +124,7 @@ export default function AdminAnalyticsPage() {
           },
           {
             title: "Applications Placed",
-            value: (overview.totalApplications || 8940).toLocaleString(),
+            value: (overview.totalApplications ?? 0).toLocaleString(),
             change: "76.4% shortlist rate",
             isPositive: true,
             icon: CheckCircle2,
