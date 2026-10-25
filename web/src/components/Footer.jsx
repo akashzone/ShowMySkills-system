@@ -42,10 +42,9 @@ export default function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wider">Platform</h4>
           <ul className="space-y-2 text-xs">
-            <li><Link href="#explore" className="hover:text-white transition-colors">Skill Directory</Link></li>
-            <li><Link href="#how-it-works" className="hover:text-white transition-colors">Skill Benchmarks</Link></li>
-            <li><Link href="#showcase" className="hover:text-white transition-colors">Developer Profile Cards</Link></li>
+            <li><Link href="/people" className="hover:text-white transition-colors">People & Star Talent</Link></li>
             <li><Link href="/internships" className="hover:text-white transition-colors">Internship Opportunities</Link></li>
+            <li><Link href="/launchpad" className="hover:text-white transition-colors">Tech Launchpad</Link></li>
           </ul>
         </div>
 
@@ -53,9 +52,9 @@ export default function Footer() {
           <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wider">Resources</h4>
           <ul className="space-y-2 text-xs">
             <li><a href="https://showmyskills.xyphx.com/api/docs" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Swagger API Specs</a></li>
-            <li><Link href="https://github.com/xyphx/ShowMySkills-system" className="hover:text-white transition-colors">Monorepo GitHub</Link></li>
+            <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+            <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
             <li><Link href="/login" className="hover:text-white transition-colors">Sign In & Authentication</Link></li>
-            <li><span className="text-slate-500">CI/CD AWS EC2 Automated</span></li>
           </ul>
         </div>
 
@@ -72,8 +71,10 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-        <div>
-          © {new Date().getFullYear()} ShowMySkills System. Open-source under MIT License.
+        <div className="flex items-center gap-4">
+          <span>© {new Date().getFullYear()} ShowMySkills System. Open-source under MIT License.</span>
+          <Link href="/terms" className="hover:underline text-slate-400">Terms</Link>
+          <Link href="/privacy" className="hover:underline text-slate-400">Privacy</Link>
         </div>
         <div className="flex items-center gap-1">
           <span>Crafted with</span>
