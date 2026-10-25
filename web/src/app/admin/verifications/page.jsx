@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   AlertCircle,
   UserCheck,
-  Sparkles,
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
