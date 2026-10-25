@@ -10,7 +10,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 import { authService } from "@/services/apiClient";
 
