@@ -10,7 +10,6 @@ import {
   Send,
   Search,
   SlidersHorizontal,
-  Sparkles,
   Star,
   CheckCheck,
   ChevronLeft,
@@ -515,9 +514,8 @@ function ChatsContent() {
 
             {/* Quick Prompts */}
             <div className="px-4 py-2 bg-white/70 border-t border-gray-100 flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-[#4B9C93]" />
-                <span>Suggestions:</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">
+                Suggestions:
               </span>
               {quickPrompts.map((prompt) => (
                 <button
