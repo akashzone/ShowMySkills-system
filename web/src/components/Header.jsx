@@ -18,14 +18,11 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link href="#explore" className="text-slate-300 hover:text-white transition-colors">
-            Explore Skills
-          </Link>
-          <Link href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">
+          <Link href="/about" className="text-slate-300 hover:text-white transition-colors">
             How It Works
           </Link>
-          <Link href="#showcase" className="text-slate-300 hover:text-white transition-colors">
-            Showcase
+          <Link href="/people" className="text-slate-300 hover:text-white transition-colors">
+            People Showcase
           </Link>
           <Link href="https://showmyskills.xyphx.com/api/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors flex items-center gap-1">
             API Docs
