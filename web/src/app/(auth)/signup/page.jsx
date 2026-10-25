@@ -28,6 +28,18 @@ const signupRoleConfigs = {
     illustration: "/Signup/Company.png",
     dashboardRoute: "/company/dashboard",
   },
+  college: {
+    title: "College Sign up",
+    tagline: "Improve placement outcomes and manage\nstudent talent with showmyskills",
+    nameLabel: "College Name",
+    namePlaceholder: "e.g. CBIT College",
+    emailLabel: "College Email Address",
+    emailPlaceholder: "admin@college.edu",
+    hasWebsite: true,
+    websitePlaceholder: "e.g. https://cbitcollege.com",
+    illustration: "/Signup/Company.png",
+    dashboardRoute: "/college/dashboard",
+  },
   admin: {
     title: "Admin Access Application",
     tagline: "Apply for administrator privileges.\nApplications are reviewed and granted by core admins.",

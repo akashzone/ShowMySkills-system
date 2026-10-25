@@ -8,8 +8,6 @@ const roleConfigs = {
   student: {
     title: "Student  Log In",
     tagline: "Show your skills. Discover your\nopportunities.",
-    nameLabel: "Full Name",
-    namePlaceholder: "e.g. Tara Joshi",
     emailLabel: "Email Address",
     emailPlaceholder: "you@university.edu",
     illustration: "/SignIn/StudentLogin.png",
@@ -18,18 +16,22 @@ const roleConfigs = {
   company: {
     title: "Company Log In",
     tagline: "Find the talent that brings your\nnext big idea to life.",
-    nameLabel: "Company Name",
-    namePlaceholder: "e.g. XYZ Company",
     emailLabel: "Office Email Address",
     emailPlaceholder: "hello@xyzcompany.com",
     illustration: "/SignIn/CompanyLogin.png",
     dashboardRoute: "/company/dashboard",
   },
+  college: {
+    title: "College Log In",
+    tagline: "Improve placement outcomes and manage\nstudent talent with showmyskills.",
+    emailLabel: "College Email Address",
+    emailPlaceholder: "admin@college.edu",
+    illustration: "/SignIn/CompanyLogin.png",
+    dashboardRoute: "/college/dashboard",
+  },
   admin: {
     title: "Admin Log In",
     tagline: "Manage and monitor platform\noutcomes with showmyskills",
-    nameLabel: "Admin Name",
-    namePlaceholder: "e.g. Jordan Hayes",
     emailLabel: "Admin Email Address",
     emailPlaceholder: "admin@showmyskills.com",
     illustration: "/SignIn/AdminLogin.png",
@@ -45,7 +47,6 @@ function LoginFormContent() {
   const [activeRole, setActiveRole] = useState(
     roleConfigs[initialRole] ? initialRole : "student"
   );
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -160,33 +161,6 @@ function LoginFormContent() {
 
         {/* Form Inputs Grid */}
         <form onSubmit={handleLogin} className="space-y-4">
-          {/* Field 1: Name */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-[#1F2937]">
-              {config.nameLabel}
-            </label>
-            <div className="flex items-center h-[44px] px-3.5 rounded-lg border border-[#DADADA] bg-[#F9FAFB] focus-within:border-[#4B9C93] focus-within:bg-white transition-all">
-              {activeRole === "student" ? (
-                <svg className="w-4 h-4 text-[#4A5565] shrink-0 opacity-80" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.6672 14V12.6667C12.6672 11.9594 12.3862 11.2811 11.886 10.781C11.3859 10.281 10.7075 10 10.0002 10H5.99974C5.29241 10 4.61406 10.281 4.1139 10.781C3.61375 11.2811 3.33276 11.9594 3.33276 12.6667V14M10.6669 4.66667C10.6669 6.13943 9.47289 7.33333 7.99996 7.33333C6.52704 7.33333 5.33299 6.13943 5.33299 4.66667C5.33299 3.19391 6.52704 2 7.99996 2C9.47289 2 10.6669 3.19391 10.6669 4.66667Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 text-[#4A5565] shrink-0 opacity-80" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 14V4H6V14H2Z" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M10 14V4H14V14H10Z" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M6 14V2H10V14H6Z" stroke="currentColor" strokeWidth="1.8" />
-                </svg>
-              )}
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder={config.namePlaceholder}
-                className="w-full bg-transparent pl-2.5 text-sm text-[#1F2937] placeholder:text-[#4A5565]/80 focus:outline-none"
-              />
-            </div>
-          </div>
 
           {/* Field 2: Email */}
           <div className="space-y-1.5">
@@ -228,12 +202,12 @@ function LoginFormContent() {
             </div>
             {/* Forgot Password Link */}
             <div className="flex justify-end pt-1">
-              <button
-                type="button"
+              <Link
+                href="/forgot-password"
                 className="text-xs sm:text-sm font-medium text-[#A10C00] hover:underline cursor-pointer"
               >
                 Forgot Password?
-              </button>
+              </Link>
             </div>
           </div>
 
