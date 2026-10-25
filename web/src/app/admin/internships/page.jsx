@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Sparkles,
   Building2,
   MapPin,
   ExternalLink,
@@ -271,7 +270,7 @@ export default function AdminInternshipsPage() {
                 <h3 className="text-2xl font-extrabold text-[#4B9C93] mt-1">{counts.featured}</h3>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-[#E6F7F3] text-[#4B9C93] flex items-center justify-center">
-                <Sparkles className="w-6 h-6" />
+                <Star className="w-6 h-6" />
               </div>
             </div>
           </div>
@@ -346,7 +345,7 @@ export default function AdminInternshipsPage() {
                               </span>
                               {job.isFeatured && (
                                 <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold border border-amber-200">
-                                  <Sparkles className="w-3 h-3 text-amber-500" />
+                                  <Star className="w-3 h-3 text-amber-500" />
                                   Featured
                                 </span>
                               )}
