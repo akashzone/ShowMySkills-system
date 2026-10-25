@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { generateOtp } from '../utils/otp.js';
 import { emailService } from './emailService.js';
 import bcrypt from 'bcryptjs';
@@ -21,15 +22,17 @@ export const userService = {
     }
 
     let user = null;
-    try {
-      user = await User.findOne(query);
+    if (mongoose.connection.readyState === 1) {
+      try {
+        user = await User.findOne(query);
 
-      // If role was specified but didn't match, search without role filter
-      if (!user && role) {
-        user = await User.findOne({ email: normalizedEmail });
+        // If role was specified but didn't match, search without role filter
+        if (!user && role) {
+          user = await User.findOne({ email: normalizedEmail });
+        }
+      } catch {
+        user = null;
       }
-    } catch {
-      user = null;
     }
 
     const DEMO_ACCOUNTS = {
@@ -64,48 +67,46 @@ export const userService = {
 
     // If user does not exist in DB yet, auto-provision demo user
     if (!user && demoAccount && password === demoAccount.password) {
-      try {
-        const hashedPassword = await bcrypt.hash(demoAccount.password, 10);
-        user = await User.create({
-          email: normalizedEmail,
-          password: hashedPassword,
-          name: demoAccount.name,
-          role: demoAccount.role,
-          roleTag: demoAccount.roleTag,
-          headline: demoAccount.headline,
-          emailVerified: true,
-          companyProfile: demoAccount.companyProfile,
-        });
-      } catch {
+      if (mongoose.connection.readyState === 1) {
         try {
-          user = await User.findOne({ email: normalizedEmail });
-        } catch {
-          user = null;
-        }
-
-        if (!user) {
-          user = {
-            _id: `demo_${demoAccount.role}_id`,
+          const hashedPassword = await bcrypt.hash(demoAccount.password, 10);
+          user = await User.create({
             email: normalizedEmail,
-            password: demoAccount.password,
+            password: hashedPassword,
             name: demoAccount.name,
             role: demoAccount.role,
             roleTag: demoAccount.roleTag,
             headline: demoAccount.headline,
             emailVerified: true,
-            toObject() {
-              return {
-                _id: this._id,
-                email: this.email,
-                name: this.name,
-                role: this.role,
-                roleTag: this.roleTag,
-                headline: this.headline,
-                emailVerified: true,
-              };
-            },
-          };
+            companyProfile: demoAccount.companyProfile,
+          });
+        } catch {
+          user = null;
         }
+      }
+
+      if (!user) {
+        user = {
+          _id: `demo_${demoAccount.role}_id`,
+          email: normalizedEmail,
+          password: demoAccount.password,
+          name: demoAccount.name,
+          role: demoAccount.role,
+          roleTag: demoAccount.roleTag,
+          headline: demoAccount.headline,
+          emailVerified: true,
+          toObject() {
+            return {
+              _id: this._id,
+              email: this.email,
+              name: this.name,
+              role: this.role,
+              roleTag: this.roleTag,
+              headline: this.headline,
+              emailVerified: true,
+            };
+          },
+        };
       }
     }
 
@@ -124,13 +125,13 @@ export const userService = {
 
     if (!passwordMatches && demoAccount && password === demoAccount.password) {
       passwordMatches = true;
-      try {
-        user.password = await bcrypt.hash(demoAccount.password, 10);
-        if (typeof user.save === 'function') {
+      if (mongoose.connection.readyState === 1 && typeof user.save === 'function') {
+        try {
+          user.password = await bcrypt.hash(demoAccount.password, 10);
           await user.save();
+        } catch {
+          // proceed
         }
-      } catch {
-        // proceed
       }
     }
 

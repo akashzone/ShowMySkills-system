@@ -20,37 +20,6 @@ import {
 import { useSidebar } from "@/context/SidebarContext";
 import { notificationService } from "@/services/apiClient";
 
-const mockNotifications = [
-  {
-    id: 1,
-    title: "Profile Viewed",
-    desc: "Visa early careers recruiting team viewed your ShowMySkills portfolio.",
-    time: "10m ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Application Shortlisted",
-    desc: "Atlassian shortlisted your application for Software Engineering Intern 2025.",
-    time: "2h ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Skill Verified",
-    desc: "React & Next.js Architecture skill assessment passed with score 93%.",
-    time: "1d ago",
-    unread: false,
-  },
-  {
-    id: 4,
-    title: "New Message",
-    desc: "Joel A. Jacob sent you a message in Chats.",
-    time: "2d ago",
-    unread: false,
-  },
-];
-
 export default function DashboardHeader({
   title,
   subtitle,
@@ -60,16 +29,16 @@ export default function DashboardHeader({
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState([]);
   const [planToast, setPlanToast] = useState("");
 
   useEffect(() => {
     let isMounted = true;
-    notificationService.list(mockNotifications).then((res) => {
-      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+    notificationService.list().then((res) => {
+      if (isMounted && res && Array.isArray(res)) {
         setNotifications(res);
       }
-    });
+    }).catch(() => {});
     return () => {
       isMounted = false;
     };

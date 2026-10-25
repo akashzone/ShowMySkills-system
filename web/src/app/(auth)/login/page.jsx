@@ -40,6 +40,47 @@ const roleConfigs = {
   },
 };
 
+const DEMO_CREDENTIALS = {
+  student: {
+    email: "student@xyphx.com",
+    password: "student@123",
+    label: "Student",
+    dashboardRoute: "/student/internships",
+    user: {
+      name: "Demo Student",
+      email: "student@xyphx.com",
+      role: "student",
+      roleTag: "Maintainer",
+      headline: "Full-Stack Developer | React & Node.js",
+    },
+  },
+  company: {
+    email: "company@xyphx.com",
+    password: "company@123",
+    label: "Company",
+    dashboardRoute: "/company/dashboard",
+    user: {
+      name: "Xyphx Technologies",
+      email: "company@xyphx.com",
+      role: "company",
+      headline: "Campus Recruiting & Engineering Talent Lead at Xyphx",
+    },
+  },
+  admin: {
+    email: "admin@xyphx.com",
+    password: "admin@123",
+    label: "Admin",
+    dashboardRoute: "/admin/dashboard",
+    user: {
+      name: "Platform Super Admin",
+      email: "admin@xyphx.com",
+      role: "admin",
+      roleTag: "Admin",
+      headline: "System Administrator & Platform Governance Lead",
+    },
+  },
+};
+
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,20 +89,43 @@ function LoginFormContent() {
   const [activeRole, setActiveRole] = useState(
     roleConfigs[initialRole] ? initialRole : "student"
   );
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("student@xyphx.com");
+  const [password, setPassword] = useState("student@123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const config = roleConfigs[activeRole];
+
+  const handleRoleChange = (role) => {
+    setActiveRole(role);
+    setError("");
+    if (!email || email.includes("@xyphx.com")) {
+      const demo = DEMO_CREDENTIALS[role];
+      if (demo) {
+        setEmail(demo.email);
+        setPassword(demo.password);
+      }
+    }
+  };
+
+  const fillDemoCredentials = (role) => {
+    const creds = DEMO_CREDENTIALS[role];
+    if (!creds) return;
+    setActiveRole(role);
+    setEmail(creds.email);
+    setPassword(creds.password);
+    setError("");
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-      const res = await authService.login(email, password, activeRole);
+      const res = await authService.login(normalizedEmail, password, activeRole);
       if (res?.data?.token) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user || res.data));
@@ -69,26 +133,21 @@ function LoginFormContent() {
       setLoading(false);
       router.push(config.dashboardRoute);
     } catch (err) {
-      if (
-        err.message &&
-        !err.message.includes("Failed to fetch") &&
-        !err.message.includes("NetworkError") &&
-        !err.message.includes("aborted")
-      ) {
-        setError(err.message);
+      // Offline fallback for demo accounts if backend is unreachable or returns 503
+      const demoAccount = Object.values(DEMO_CREDENTIALS).find(
+        (c) => c.email === normalizedEmail && c.password === password
+      );
+
+      if (demoAccount) {
+        localStorage.setItem("token", `demo-jwt-token-${activeRole}-${Date.now()}`);
+        localStorage.setItem("user", JSON.stringify(demoAccount.user));
         setLoading(false);
-      } else {
-        // Backend offline fallback: preserve seamless login experience
-        localStorage.setItem("token", "mock-jwt-token-demo");
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ email, role: activeRole, name: email.split("@")[0] })
-        );
-        setTimeout(() => {
-          setLoading(false);
-          router.push(config.dashboardRoute);
-        }, 300);
+        router.push(config.dashboardRoute);
+        return;
       }
+
+      setError(err.message || "Failed to log in. Please check your credentials.");
+      setLoading(false);
     }
   };
 
@@ -142,7 +201,7 @@ function LoginFormContent() {
           <div className="flex items-center bg-gray-100/80 p-1 rounded-full text-xs font-semibold">
             <button
               type="button"
-              onClick={() => setActiveRole("student")}
+              onClick={() => handleRoleChange("student")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                 activeRole === "student"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
@@ -153,7 +212,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveRole("company")}
+              onClick={() => handleRoleChange("company")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                 activeRole === "company"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
@@ -164,7 +223,7 @@ function LoginFormContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveRole("admin")}
+              onClick={() => handleRoleChange("admin")}
               className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                 activeRole === "admin"
                   ? "bg-[#4B9C93] text-white shadow-xs font-bold"
@@ -177,13 +236,59 @@ function LoginFormContent() {
         </div>
 
         {/* Card Title & Subtitle */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-4">
           <h2 className="text-3xl sm:text-[32px] font-bold text-gray-900">
             Log In
           </h2>
           <p className="text-sm sm:text-base text-[#4A5565]/80 font-medium mt-1">
             Welcome back to ShowMySkills
           </p>
+        </div>
+
+        {/* Quick Demo Credentials Strip */}
+        <div className="mb-4 p-3 rounded-2xl bg-[#4B9C93]/10 border border-[#4B9C93]/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#4B9C93] animate-pulse" />
+            <span className="text-xs font-bold text-slate-800">Quick Demo Logins:</span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => fillDemoCredentials("student")}
+              title="student@xyphx.com / student@123"
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                activeRole === "student" && email === "student@xyphx.com"
+                  ? "bg-[#4B9C93] text-white border-[#4B9C93] shadow-xs"
+                  : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+              }`}
+            >
+              Student
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemoCredentials("company")}
+              title="company@xyphx.com / company@123"
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                activeRole === "company" && email === "company@xyphx.com"
+                  ? "bg-[#4B9C93] text-white border-[#4B9C93] shadow-xs"
+                  : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+              }`}
+            >
+              Company
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemoCredentials("admin")}
+              title="admin@xyphx.com / admin@123"
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                activeRole === "admin" && email === "admin@xyphx.com"
+                  ? "bg-[#4B9C93] text-white border-[#4B9C93] shadow-xs"
+                  : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+              }`}
+            >
+              Admin
+            </button>
+          </div>
         </div>
 
         {/* Form Inputs Grid */}
@@ -227,8 +332,11 @@ function LoginFormContent() {
                 className="w-full bg-transparent pl-2.5 text-sm text-[#1F2937] placeholder:text-[#4A5565]/80 focus:outline-none"
               />
             </div>
-            {/* Forgot Password Link */}
-            <div className="flex justify-end pt-1">
+            {/* Forgot Password Link & Demo Hint */}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] text-slate-400 font-mono">
+                Demo: {DEMO_CREDENTIALS[activeRole]?.email || "student@xyphx.com"} / {DEMO_CREDENTIALS[activeRole]?.password || "student@123"}
+              </span>
               <Link
                 href="/forgot-password"
                 className="text-xs sm:text-sm font-medium text-[#A10C00] hover:underline cursor-pointer"
