@@ -26,6 +26,14 @@ test('Dummy Logins: admin@xyphx.com logs in with admin@123', async () => {
   assert.ok(result.token, 'Should return a valid JWT token');
 });
 
+test('Dummy Logins: college@xyphx.com logs in with college@123', async () => {
+  const result = await userService.authenticate('college@xyphx.com', 'college@123', 'college');
+  assert.ok(result);
+  assert.strictEqual(result.email, 'college@xyphx.com');
+  assert.strictEqual(result.role, 'college');
+  assert.ok(result.token, 'Should return a valid JWT token');
+});
+
 test('Dummy Logins: Rejects incorrect password for demo accounts', async () => {
   await assert.rejects(
     async () => {

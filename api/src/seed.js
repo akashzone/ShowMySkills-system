@@ -27,13 +27,13 @@ import SkillAssessment from './models/SkillAssessment.js';
 import SkillSubmission from './models/SkillSubmission.js';
 import Bookmark from './models/Bookmark.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/showmyskills';
+const DEFAULT_MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/showmyskills';
 
-export const seedDatabase = async () => {
+export const seedSingleDatabase = async (targetUri) => {
   try {
     console.log(`\n======================================================`);
-    console.log(`Connecting to MongoDB: ${MONGODB_URI}`);
-    await mongoose.connect(MONGODB_URI);
+    console.log(`Connecting to MongoDB: ${targetUri}`);
+    await mongoose.connect(targetUri);
     const dbName = mongoose.connection.name;
     console.log(`✅ Connected successfully to Database: "${dbName}"`);
     console.log(`======================================================\n`);
@@ -57,6 +57,7 @@ export const seedDatabase = async () => {
     const studentHashedPassword = await bcrypt.hash('student@123', 10);
     const companyHashedPassword = await bcrypt.hash('company@123', 10);
     const adminHashedPassword = await bcrypt.hash('admin@123', 10);
+    const collegeHashedPassword = await bcrypt.hash('college@123', 10);
 
     // ──────────────────────────────────────────────────────────
     // 1. Core Platform Administrators
@@ -205,6 +206,28 @@ export const seedDatabase = async () => {
       },
     });
 
+    const xyphxCollege = await User.create({
+      name: 'Xyphx University Relations & Placement',
+      email: 'college@xyphx.com',
+      phone: '+91 80 9876 5432',
+      password: collegeHashedPassword,
+      role: 'college',
+      headline: 'Placement & Career Guidance Unit at Xyphx Partner Institutions',
+      emailVerified: true,
+      collegeProfile: {
+        collegeName: 'Xyphx Institute of Technology',
+        institutionCode: 'XYPHX-EDU-01',
+        establishedYear: 2018,
+        location: 'Bengaluru, Karnataka, India',
+        accreditation: 'NAAC A++ / Autonomous',
+        officialWebsite: 'https://xyphx.edu.in',
+        contactEmail: 'placements@xyphx.edu.in',
+        activeStudentsCount: 3500,
+        placementRatePercent: 96,
+        isVerified: true,
+      },
+    });
+
     // ──────────────────────────────────────────────────────────
     // 4. Exact Star Student Candidates (Matching UI & Screenshots)
     // ──────────────────────────────────────────────────────────
@@ -212,7 +235,7 @@ export const seedDatabase = async () => {
 
     // 0. Demo Student Candidate (student@xyphx.com)
     const xyphxStudent = await User.create({
-      displayOrder: 0,
+      displayOrder: 99,
       name: 'Demo Student',
       email: 'student@xyphx.com',
       phone: '+91 98765 43210',
@@ -1420,13 +1443,46 @@ export const seedDatabase = async () => {
     console.log(`👉 In MongoDB Compass: Click the Refresh icon (⟳) on the collection!`);
     console.log(`======================================================\n`);
 
-    process.exit(0);
+    await mongoose.disconnect();
+    return counts;
   } catch (error) {
-    console.error('❌ Database seeding error:', error);
-    process.exit(1);
+    console.error(`❌ Database seeding error in ${targetUri}:`, error);
+    try {
+      await mongoose.disconnect();
+    } catch {}
+    throw error;
   }
 };
 
+export const seedDatabase = async () => {
+  const baseUri = DEFAULT_MONGODB_URI.trim();
+  let targetUris = [baseUri];
+
+  if (baseUri.includes('mongodb.net')) {
+    const match = baseUri.match(/^(mongodb\+srv:\/\/[^/]+)(\/[^?]*)?(\?.*)?$/);
+    if (match) {
+      const root = match[1];
+      const query = match[3] || '?retryWrites=true&w=majority';
+      targetUris = [
+        `${root}/test${query}`,
+        `${root}/showmyskills${query}`,
+      ];
+    }
+  }
+
+  console.log(`\n🚀 Initializing multi-database seed for targets:`, targetUris);
+
+  for (const uri of targetUris) {
+    await seedSingleDatabase(uri);
+  }
+
+  console.log(`\n✅ ALL DATABASES SEEDED SUCCESSFULLY!`);
+  process.exit(0);
+};
+
 if (process.argv[1]?.endsWith('seed.js')) {
-  seedDatabase();
+  seedDatabase().catch((err) => {
+    console.error('Fatal seed failure:', err);
+    process.exit(1);
+  });
 }

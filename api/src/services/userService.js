@@ -61,6 +61,12 @@ export const userService = {
         name: 'Platform Super Admin',
         headline: 'System Administrator & Platform Governance Lead',
       },
+      'college@xyphx.com': {
+        password: 'college@123',
+        role: 'college',
+        name: 'Xyphx University Relations & Placement',
+        headline: 'Placement & Career Guidance Unit at Xyphx Partner Institutions',
+      },
     };
 
     const demoAccount = DEMO_ACCOUNTS[normalizedEmail];
