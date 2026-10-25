@@ -9,7 +9,6 @@ import {
   Bookmark,
   Check,
   RotateCcw,
-  Sparkles,
   MapPin,
   CalendarDays,
   Wallet,
@@ -486,7 +485,7 @@ export default function InternshipsPage() {
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-gray-900/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#4B9C93]" />
+              <CheckCircle className="w-3.5 h-3.5 text-[#4B9C93]" />
               {toastMessage}
             </motion.div>
           )}
@@ -737,7 +736,7 @@ export default function InternshipsPage() {
                     className="w-full h-full aspect-square bg-white rounded-2xl p-6 sm:p-7 border border-gray-100 shadow-xl shadow-black/5 flex flex-col items-center justify-center text-center"
                   >
                     <div className="w-12 h-12 rounded-full bg-[#E6F7F3] border border-[#4B9C93]/20 flex items-center justify-center text-[#4B9C93] mb-3">
-                      <Sparkles className="w-6 h-6" />
+                      <CheckCircle className="w-6 h-6" />
                     </div>
 
                     <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
