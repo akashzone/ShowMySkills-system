@@ -123,3 +123,30 @@ test('Backend Architecture: Bookmark Item Types Support', () => {
   assert.strictEqual(supportedTypes.includes('invalid_type'), false);
 });
 
+test('Backend Monitoring: Real-time Telemetry Service & Snapshot Computation', async () => {
+  const { monitoringService } = await import('../api/src/services/monitoringService.js');
+
+  const beforeTotal = monitoringService.totalRequests;
+  monitoringService.recordRequestStart();
+  monitoringService.recordRequestEnd({
+    id: 'test-req-123',
+    method: 'GET',
+    path: '/api/internships',
+    status: 200,
+    durationMs: 45.2,
+    ip: '127.0.0.1',
+    userAgent: 'NodeTest',
+  });
+
+  const snapshot = monitoringService.getMetricsSnapshot();
+  assert.strictEqual(snapshot.status, 'healthy');
+  assert.strictEqual(typeof snapshot.uptime.seconds, 'number');
+  assert.strictEqual(typeof snapshot.memory.heapUsedMB, 'number');
+  assert.strictEqual(typeof snapshot.requests.total, 'number');
+  assert.ok(snapshot.requests.total >= beforeTotal + 1);
+  assert.ok(snapshot.requests.statusBreakdown['2xx'] >= 1);
+  assert.strictEqual(typeof snapshot.performance.latencyMs.avg, 'number');
+  assert.ok(Array.isArray(snapshot.topEndpoints));
+});
+
+

@@ -112,6 +112,10 @@ Features role-based access control (Student, Company, College, Admin), ATS job a
         description: 'Helpdesk support ticket submissions and searchable platform knowledge base FAQs.',
       },
       {
+        name: 'Monitoring',
+        description: 'Real-time telemetry, memory usage, RPS metrics, and live SSE event streaming.',
+      },
+      {
         name: 'System',
         description: 'Health check, service diagnostics, and telemetry endpoints.',
       },

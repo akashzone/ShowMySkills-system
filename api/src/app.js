@@ -28,6 +28,9 @@ import supportRoutes from './routes/supportRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import bookmarkRoutes from './routes/bookmarkRoutes.js';
+import monitoringRoutes from './routes/monitoringRoutes.js';
+import { requestLogger } from './middleware/logger.js';
+import monitoringService from './services/monitoringService.js';
 
 const app = express();
 
@@ -37,6 +40,9 @@ app.set('trust proxy', 1);
 // ──── Security Layer 1: HTTP Headers & CORS ────
 app.use(helmetSecurity);
 app.use(cors(corsOptions));
+
+// ──── Real-Time HTTP Logging & Telemetry ────
+app.use(requestLogger);
 
 // ──── Security Layer 2: Payload Size Protection ────
 app.use(express.json({ limit: '100kb' }));
@@ -139,6 +145,9 @@ apiRouter.use('/notifications', notificationRoutes);
 // Helpdesk & Support FAQs: /api/support/*
 apiRouter.use('/support', supportRoutes);
 
+// Real-Time System Monitoring & Telemetry: /api/monitoring/*
+apiRouter.use('/monitoring', monitoringRoutes);
+
 /**
  * @openapi
  * /api/health:
@@ -189,12 +198,22 @@ app.use('/api', apiRouter);
 // ──── Security Layer 5: Safe Production Error Handler ────
 app.use((err, req, res, next) => {
   const isProduction = process.env.NODE_ENV === 'production';
+  const statusCode = err.statusCode || 500;
+
+  // Record error in monitoring engine
+  monitoringService.recordError({
+    id: req.id,
+    method: req.method,
+    path: req.originalUrl || req.url,
+    status: statusCode,
+    message: err.message,
+    stack: err.stack,
+  });
 
   if (!isProduction) {
     console.error(`[Error] ${req.method} ${req.url}:`, err.stack || err.message);
   }
 
-  const statusCode = err.statusCode || 500;
   const message =
     isProduction && statusCode === 500
       ? 'An unexpected internal server error occurred.'
