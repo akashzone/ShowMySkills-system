@@ -21,8 +21,93 @@ export const getApiBaseUrl = () => {
   );
 };
 
+export const tokenStorage = {
+  getAccessToken: () => {
+    if (typeof window === "undefined") return null;
+    return (
+      localStorage.getItem("token") ||
+      localStorage.getItem("accessToken") ||
+      sessionStorage.getItem("token") ||
+      sessionStorage.getItem("accessToken") ||
+      null
+    );
+  },
+
+  getRefreshToken: () => {
+    if (typeof window === "undefined") return null;
+    return (
+      localStorage.getItem("refreshToken") ||
+      sessionStorage.getItem("refreshToken") ||
+      null
+    );
+  },
+
+  setTokens: ({ accessToken, refreshToken, token }) => {
+    if (typeof window === "undefined") return;
+    const access = accessToken || token;
+    if (access) {
+      localStorage.setItem("token", access);
+      localStorage.setItem("accessToken", access);
+      sessionStorage.setItem("token", access);
+      sessionStorage.setItem("accessToken", access);
+    }
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+      sessionStorage.setItem("refreshToken", refreshToken);
+    }
+  },
+
+  clearTokens: () => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("jwt");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+  },
+};
+
+let refreshPromise = null;
+
+async function refreshTokensDirectly() {
+  const refreshToken = tokenStorage.getRefreshToken();
+  if (!refreshToken) {
+    tokenStorage.clearTokens();
+    throw new Error("No refresh token available");
+  }
+
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/auth/refresh`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!res.ok) {
+    tokenStorage.clearTokens();
+    const err = new Error("Session expired. Please log in again.");
+    err.status = res.status;
+    throw err;
+  }
+
+  const json = await res.json();
+  const payload = json.data || json;
+  tokenStorage.setTokens({
+    accessToken: payload.accessToken || payload.token,
+    refreshToken: payload.refreshToken,
+  });
+
+  return payload.accessToken || payload.token;
+}
+
 /**
- * Standard API request with timeout and auto-injected Bearer auth.
+ * Standard API request with timeout, auto-injected Bearer auth,
+ * and automated silent token refresh on 401 expiration.
  */
 export async function apiRequest(endpoint, method = "GET", body = null, customHeaders = {}) {
   const baseUrl = getApiBaseUrl();
@@ -30,15 +115,9 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
 
   const headers = { ...customHeaders };
 
-  // Auto-inject stored JWT token from localStorage if available
-  if (typeof window !== "undefined") {
-    const token =
-      localStorage.getItem("token") ||
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("jwt");
-    if (token && !headers["Authorization"]) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+  const accessToken = tokenStorage.getAccessToken();
+  if (accessToken && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
   const options = {
@@ -54,13 +133,44 @@ export async function apiRequest(endpoint, method = "GET", body = null, customHe
     options.body = JSON.stringify(body);
   }
 
-  // Abort request after 4 seconds to fail fast if backend is offline
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
   options.signal = controller.signal;
 
   try {
-    const res = await fetch(`${baseUrl}${formattedEndpoint}`, options);
+    let res = await fetch(`${baseUrl}${formattedEndpoint}`, options);
+
+    // Auto-refresh token if access token expired (HTTP 401 on authenticated endpoints)
+    if (
+      res.status === 401 &&
+      !formattedEndpoint.includes("/auth/login") &&
+      !formattedEndpoint.includes("/auth/register") &&
+      !formattedEndpoint.includes("/auth/refresh") &&
+      tokenStorage.getRefreshToken()
+    ) {
+      try {
+        if (!refreshPromise) {
+          refreshPromise = refreshTokensDirectly().finally(() => {
+            refreshPromise = null;
+          });
+        }
+        const newAccessToken = await refreshPromise;
+
+        // Retry original request with newly issued access token
+        const retryHeaders = {
+          ...headers,
+          Authorization: `Bearer ${newAccessToken}`,
+        };
+        const retryOptions = {
+          ...options,
+          headers: retryHeaders,
+        };
+        res = await fetch(`${baseUrl}${formattedEndpoint}`, retryOptions);
+      } catch {
+        // Refresh token failed or revoked; proceed to error handling below
+      }
+    }
+
     clearTimeout(timeoutId);
 
     if (!res.ok) {
@@ -218,19 +328,65 @@ export async function apiFetchWithFallback(
 
 export const authService = {
   login: async (email, password, role) => {
-    return apiRequest("/auth/login", "POST", { email, password, role });
+    const res = await apiRequest("/auth/login", "POST", { email, password, role });
+    if (res?.data) {
+      tokenStorage.setTokens({
+        accessToken: res.data.accessToken || res.data.token,
+        refreshToken: res.data.refreshToken,
+      });
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(res.data));
+      }
+    }
+    return res;
   },
 
   register: async (userData) => {
-    return apiRequest("/auth/register", "POST", userData);
+    const res = await apiRequest("/auth/register", "POST", userData);
+    if (res?.data?.accessToken || res?.data?.token) {
+      tokenStorage.setTokens({
+        accessToken: res.data.accessToken || res.data.token,
+        refreshToken: res.data.refreshToken,
+      });
+    }
+    return res;
   },
 
   getCurrentUser: async () => {
     return apiFetchWithFallback("/auth/me", "GET", null, null);
   },
 
+  updateCurrentUser: async (profileData) => {
+    return apiRequest("/auth/me", "PUT", profileData);
+  },
+
   verifyEmail: async (email, otp) => {
-    return apiRequest("/auth/verify-email", "POST", { email, otp });
+    const res = await apiRequest("/auth/verify-email", "POST", { email, otp });
+    if (res?.data?.accessToken || res?.data?.token) {
+      tokenStorage.setTokens({
+        accessToken: res.data.accessToken || res.data.token,
+        refreshToken: res.data.refreshToken,
+      });
+    }
+    return res;
+  },
+
+  refresh: async () => {
+    return refreshTokensDirectly();
+  },
+
+  logout: async () => {
+    const refreshToken = tokenStorage.getRefreshToken();
+    try {
+      if (refreshToken) {
+        await apiRequest("/auth/logout", "POST", { refreshToken });
+      }
+    } catch {}
+    tokenStorage.clearTokens();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user");
+    }
+    return { success: true };
   },
 
   forgotPassword: async (email) => {
@@ -239,6 +395,62 @@ export const authService = {
 
   resetPassword: async (email, otp, newPassword) => {
     return apiRequest("/auth/reset-password", "POST", { email, otp, newPassword });
+  },
+};
+
+export const bookmarkService = {
+  getMyBookmarks: async (type = null) => {
+    const endpoint = type ? `/bookmarks?type=${encodeURIComponent(type)}` : "/bookmarks";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
+  },
+
+  toggleInternship: async (internshipId) => {
+    return apiRequest(`/bookmarks/internships/${internshipId}`, "POST");
+  },
+
+  toggleCandidate: async (candidateId) => {
+    return apiRequest(`/bookmarks/candidates/${candidateId}`, "POST");
+  },
+};
+
+export const skillService = {
+  list: async (category = null) => {
+    const endpoint = category ? `/skills?category=${encodeURIComponent(category)}` : "/skills";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
+  },
+
+  getById: async (id) => {
+    return apiFetchWithFallback(`/skills/${id}`, "GET", null, null);
+  },
+
+  submit: async (id, answers) => {
+    return apiRequest(`/skills/${id}/submit`, "POST", { answers });
+  },
+
+  getMySubmissions: async () => {
+    return apiFetchWithFallback("/skills/my-submissions", "GET", null, []);
+  },
+};
+
+export const collegeService = {
+  getStudents: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/users?role=student&${queryString}` : "/users?role=student";
+    return apiFetchWithFallback(endpoint, "GET", null, []);
+  },
+
+  verifyStudentId: async (studentId, status = "approved") => {
+    return apiRequest(`/admin/verifications/${studentId}`, "PUT", { status });
+  },
+};
+
+export const verificationService = {
+  submit: async (verificationData) => {
+    return apiRequest("/verifications", "POST", verificationData);
+  },
+
+  getMyRequests: async () => {
+    return apiFetchWithFallback("/verifications/my-requests", "GET", null, []);
   },
 };
 

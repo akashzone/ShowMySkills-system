@@ -161,6 +161,22 @@ export const adminController = {
     }
   },
 
+  deleteInternship: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const internship = await Internship.findByIdAndDelete(id);
+      if (!internship) {
+        return res.status(404).json({ success: false, message: 'Internship not found' });
+      }
+      res.json({
+        success: true,
+        message: 'Internship posting removed successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // List verification audit requests
   getVerifications: async (req, res, next) => {
     try {

@@ -438,4 +438,77 @@ router.post('/reset-password', authRateLimiter, authController.resetPassword);
  */
 router.get('/me', authMiddleware, authController.getMe);
 
+/**
+ * @openapi
+ * /api/auth/me:
+ *   put:
+ *     summary: Update currently authenticated user profile
+ *     description: Update authenticated profile fields, aliases, settings, or credentials.
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/me', authMiddleware, authController.updateMe);
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Exchange refresh token for a fresh access token
+ *     description: Provides automated token rotation and seamless authentication lifecycle without re-logging in.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tokens refreshed successfully
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+router.post('/refresh', authRateLimiter, authController.refresh);
+
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout and revoke refresh token
+ *     description: Removes active refresh token session from user record.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
+router.post('/logout', authController.logout);
+
 export default router;

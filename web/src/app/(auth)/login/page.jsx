@@ -69,8 +69,10 @@ function LoginFormContent() {
 
     try {
       const res = await authService.login(normalizedEmail, password, activeRole);
-      if (res?.data?.token) {
-        localStorage.setItem("token", res.data.token);
+      if (res?.data) {
+        const token = res.data.accessToken || res.data.token;
+        if (token) localStorage.setItem("token", token);
+        if (res.data.refreshToken) localStorage.setItem("refreshToken", res.data.refreshToken);
         localStorage.setItem("user", JSON.stringify(res.data.user || res.data));
       }
       setLoading(false);

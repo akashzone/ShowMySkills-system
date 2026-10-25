@@ -45,6 +45,7 @@ router.use(authMiddleware);
  *         description: Unauthorized - Bearer token required
  */
 router.get('/my-bookmarks', bookmarkController.getMyBookmarks);
+router.get('/', bookmarkController.getMyBookmarks);
 
 /**
  * @openapi

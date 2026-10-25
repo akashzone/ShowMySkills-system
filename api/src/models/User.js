@@ -306,6 +306,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    refreshTokens: [
+      {
+        token: { type: String, required: true },
+        expiresAt: { type: Date, required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
