@@ -13,7 +13,6 @@ import {
   Calendar,
   Download,
   ArrowUpRight,
-  Sparkles,
   Award,
   Layers,
   Activity,
@@ -241,7 +240,7 @@ export default function AdminAnalyticsPage() {
                   </h3>
                   <p className="text-xs text-gray-500">Based on recruiter job postings & verified tests</p>
                 </div>
-                <Sparkles className="w-5 h-5 text-amber-400" />
+                <TrendingUp className="w-5 h-5 text-amber-400" />
               </div>
 
               <div className="space-y-4 pt-1">
