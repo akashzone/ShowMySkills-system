@@ -21,100 +21,9 @@ export const userService = {
       query.role = role;
     }
 
-    let user = null;
-    if (mongoose.connection.readyState === 1) {
-      try {
-        user = await User.findOne(query);
-
-        // If role was specified but didn't match, search without role filter
-        if (!user && role) {
-          user = await User.findOne({ email: normalizedEmail });
-        }
-      } catch {
-        user = null;
-      }
-    }
-
-    const DEMO_ACCOUNTS = {
-      'student@xyphx.com': {
-        password: 'student@123',
-        role: 'student',
-        roleTag: 'Maintainer',
-        name: 'Demo Student',
-        headline: 'Full-Stack Developer | React & Node.js',
-      },
-      'company@xyphx.com': {
-        password: 'company@123',
-        role: 'company',
-        name: 'Xyphx Technologies',
-        headline: 'Campus Recruiting & Engineering Talent Lead at Xyphx',
-        companyProfile: {
-          companyName: 'Xyphx Technologies',
-          tagline: 'Engineering the next wave of developer ecosystems',
-          isVerified: true,
-        },
-      },
-      'admin@xyphx.com': {
-        password: 'admin@123',
-        role: 'admin',
-        roleTag: 'Admin',
-        name: 'Platform Super Admin',
-        headline: 'System Administrator & Platform Governance Lead',
-      },
-      'college@xyphx.com': {
-        password: 'college@123',
-        role: 'college',
-        name: 'Xyphx University Relations & Placement',
-        headline: 'Placement & Career Guidance Unit at Xyphx Partner Institutions',
-      },
-    };
-
-    const demoAccount = DEMO_ACCOUNTS[normalizedEmail];
-
-    // If user does not exist in DB yet, auto-provision demo user
-    if (!user && demoAccount && password === demoAccount.password) {
-      if (mongoose.connection.readyState === 1) {
-        try {
-          const hashedPassword = await bcrypt.hash(demoAccount.password, 10);
-          user = await User.create({
-            email: normalizedEmail,
-            password: hashedPassword,
-            name: demoAccount.name,
-            role: demoAccount.role,
-            roleTag: demoAccount.roleTag,
-            headline: demoAccount.headline,
-            emailVerified: true,
-            companyProfile: demoAccount.companyProfile,
-          });
-        } catch {
-          user = null;
-        }
-      }
-
-      if (!user) {
-        user = {
-          _id: `demo_${demoAccount.role}_id`,
-          email: normalizedEmail,
-          password: demoAccount.password,
-          name: demoAccount.name,
-          role: demoAccount.role,
-          roleTag: demoAccount.roleTag,
-          headline: demoAccount.headline,
-          emailVerified: true,
-          toObject() {
-            return {
-              _id: this._id,
-              email: this.email,
-              name: this.name,
-              role: this.role,
-              roleTag: this.roleTag,
-              headline: this.headline,
-              emailVerified: true,
-            };
-          },
-        };
-      }
-    }
+    const user =
+      (await User.findOne(query)) ||
+      (role ? await User.findOne({ email: normalizedEmail }) : null);
 
     if (!user) {
       const error = new Error('Invalid email or password');
@@ -122,25 +31,7 @@ export const userService = {
       throw error;
     }
 
-    let passwordMatches = false;
-    if (typeof user.password === 'string' && user.password.startsWith('$2')) {
-      passwordMatches = await bcrypt.compare(password, user.password);
-    } else if (demoAccount && password === demoAccount.password) {
-      passwordMatches = true;
-    }
-
-    if (!passwordMatches && demoAccount && password === demoAccount.password) {
-      passwordMatches = true;
-      if (mongoose.connection.readyState === 1 && typeof user.save === 'function') {
-        try {
-          user.password = await bcrypt.hash(demoAccount.password, 10);
-          await user.save();
-        } catch {
-          // proceed
-        }
-      }
-    }
-
+    const passwordMatches = await bcrypt.compare(password, user.password);
     if (!passwordMatches) {
       const error = new Error('Invalid email or password');
       error.statusCode = 401;
