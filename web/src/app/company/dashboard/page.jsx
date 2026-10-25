@@ -13,7 +13,6 @@ import {
   Eye,
   Search,
   Filter,
-  Sparkles,
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
@@ -119,7 +118,7 @@ export default function CompanyDashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-gradient-to-r from-[#4B9C93] to-[#367971] text-white p-6 sm:p-8 rounded-3xl shadow-sm">
             <div>
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-semibold mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />
                 <span>Hiring Season 2026 Active</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
