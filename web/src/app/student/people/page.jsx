@@ -14,7 +14,6 @@ import {
   X,
   ExternalLink,
   GraduationCap,
-  Sparkles,
   CheckCircle2,
   Share2,
   MessageSquare,
@@ -738,9 +737,8 @@ export default function StudentPeoplePage() {
                   {selectedCandidate.allSkills.map((s) => (
                     <span
                       key={s}
-                      className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 rounded-full text-xs font-medium text-gray-700 flex items-center gap-1.5"
+                      className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 rounded-full text-xs font-medium text-gray-700"
                     >
-                      <Sparkles className="w-3 h-3 text-[#4B9C93]" />
                       {s}
                     </span>
                   ))}
