@@ -29,6 +29,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import bookmarkRoutes from './routes/bookmarkRoutes.js';
 import monitoringRoutes from './routes/monitoringRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
 import { requestLogger } from './middleware/logger.js';
 import monitoringService from './services/monitoringService.js';
 
@@ -148,40 +149,8 @@ apiRouter.use('/support', supportRoutes);
 // Real-Time System Monitoring & Telemetry: /api/monitoring/*
 apiRouter.use('/monitoring', monitoringRoutes);
 
-/**
- * @openapi
- * /api/health:
- *   get:
- *     summary: System health check and runtime status
- *     description: Returns operational status, current server UTC timestamp, and request path.
- *     tags:
- *       - System
- *     responses:
- *       200:
- *         description: Service is healthy and operational
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: 'ok'
- *                 timestamp:
- *                   type: string
- *                   format: date-time
- *                   example: '2026-10-25T07:30:00.000Z'
- *                 path:
- *                   type: string
- *                   example: '/api/health'
- */
-apiRouter.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    path: req.originalUrl,
-  });
-});
+// System Health & Diagnostics API: /api/health
+apiRouter.use('/health', healthRoutes);
 
 // Catch-all handler for unknown API endpoints
 apiRouter.all('*', (req, res) => {
@@ -191,6 +160,9 @@ apiRouter.all('*', (req, res) => {
     message: `API endpoint '${req.originalUrl}' does not exist.`,
   });
 });
+
+// Root-level health check for reverse proxy / container orchestrators (e.g., http://localhost:5000/health)
+app.use('/health', healthRoutes);
 
 // Mount all API routes under /api
 app.use('/api', apiRouter);
