@@ -24,7 +24,6 @@ import {
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import InternshipCard from "@/features/internships/InternshipCard";
-import { mockInternships } from "@/features/internships/mockData";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -257,11 +256,10 @@ export default function InternshipsPage() {
       setAllInternships(mapped);
       setCards(mapped.filter((item) => !actionedIds.has(item.id)));
     } catch (error) {
-      console.warn("Backend API unreachable, using sample internships:", error);
-      // Seamless fallback to mock data when backend is not running
-      setAllInternships(mockInternships);
-      setCards(mockInternships);
-      setApiError("");
+      console.warn("Backend API unreachable:", error);
+      setAllInternships([]);
+      setCards([]);
+      setApiError("Unable to load internships from database server.");
     } finally {
       setLoading(false);
     }
