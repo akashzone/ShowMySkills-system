@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Building2,
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { authService, apiRequest } from "@/services/apiClient";
 
 const initialCompanyData = {
   name: "WebShark Technologies & Solutions",
@@ -128,7 +129,34 @@ export default function CompanyProfilePage() {
     about: company.about,
   });
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    let isMounted = true;
+    authService.getCurrentUser(null).then((user) => {
+      if (isMounted && user) {
+        setCompany((prev) => ({
+          ...prev,
+          name: user.name || prev.name,
+          email: user.email || prev.email,
+          location: user.location || prev.location,
+          website: user.website || prev.website,
+          about: user.bio || prev.about,
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          name: user.name || prev.name,
+          email: user.email || prev.email,
+          location: user.location || prev.location,
+          website: user.website || prev.website,
+          about: user.bio || prev.about,
+        }));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSave = async (e) => {
     e.preventDefault();
     setCompany((prev) => ({
       ...prev,
@@ -136,6 +164,9 @@ export default function CompanyProfilePage() {
     }));
     setIsEditing(false);
     setEditSuccess(true);
+    try {
+      await apiRequest("/auth/me", "PUT", formData);
+    } catch {}
     setTimeout(() => setEditSuccess(false), 3000);
   };
 

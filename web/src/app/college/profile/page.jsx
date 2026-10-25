@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Building2,
@@ -21,6 +21,7 @@ import {
 
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import { authService } from "@/services/apiClient";
 
 export default function CollegeProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -64,10 +65,26 @@ export default function CollegeProfilePage() {
     ],
   });
 
+  useEffect(() => {
+    let isMounted = true;
+    authService.getCurrentUser(null).then((user) => {
+      if (isMounted && user) {
+        setProfile((prev) => ({
+          ...prev,
+          collegeName: user.name || prev.collegeName,
+          email: user.email || prev.email,
+          location: user.location || prev.location,
+        }));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleSave = (e) => {
     e.preventDefault();
     setIsEditing(false);
-    alert("College institutional profile updated successfully!");
   };
 
   return (

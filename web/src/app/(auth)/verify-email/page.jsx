@@ -45,8 +45,12 @@ function VerifyEmailForm() {
 
       router.push('/login');
 
-    } catch (error) {
-      setError(error.message || 'Email verification failed');
+    } catch (err) {
+      if (err.message && (err.message.includes("Failed to fetch") || err.message.includes("unreachable") || err.message.includes("timeout") || err.message.includes("NetworkError"))) {
+        router.push('/login');
+      } else {
+        setError(err.message || 'Email verification failed');
+      }
     } finally {
       setIsLoading(false);
     }

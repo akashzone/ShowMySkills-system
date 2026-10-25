@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
+import { notificationService } from "@/services/apiClient";
 
 const mockNotifications = [
   {
@@ -62,6 +63,18 @@ export default function DashboardHeader({
   const [notifications, setNotifications] = useState(mockNotifications);
   const [planToast, setPlanToast] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+    notificationService.list(mockNotifications).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setNotifications(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handlePlanClick = () => {
     setPlanToast("currently not avalable");
     setTimeout(() => setPlanToast(""), 3000);
@@ -88,6 +101,7 @@ export default function DashboardHeader({
 
   const handleMarkAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    notificationService.markRead();
   };
 
   const role = pathname.startsWith("/company")

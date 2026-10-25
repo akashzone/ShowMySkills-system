@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -17,6 +17,7 @@ import {
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
+import { adminService } from "@/services/apiClient";
 
 const initialStudents = [
   {
@@ -142,6 +143,23 @@ export default function AdminDashboardPage() {
   const [tagToast, setTagToast] = useState("");
   const [adminActionToast, setAdminActionToast] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+    adminService.getUsers({ role: "student" }, initialStudents).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setStudents(res);
+      }
+    });
+    adminService.getVerifications({}, pendingVerifications).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setVerifications(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const tagOptions = Object.keys(STUDENT_ROLE_TAGS);
 
   const handleApproveAdminApp = async (appId) => {
@@ -182,6 +200,7 @@ export default function AdminDashboardPage() {
 
   const handleApprove = (id) => {
     setVerifications((prev) => prev.filter((item) => item.id !== id));
+    adminService.reviewVerification(id, "verified");
   };
 
   const handleTagChange = (studentId, newTag) => {
@@ -193,6 +212,7 @@ export default function AdminDashboardPage() {
         return s;
       })
     );
+    adminService.updateRoleTag(studentId, newTag);
     const targetStudent = students.find((s) => s.id === studentId);
     setTagToast(`Updated ${targetStudent?.name || "Student"}'s tag to ${newTag}`);
     setTimeout(() => setTagToast(""), 3500);

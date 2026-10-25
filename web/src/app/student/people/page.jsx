@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -14,7 +14,6 @@ import {
   X,
   ExternalLink,
   GraduationCap,
-  Sparkles,
   CheckCircle2,
   Share2,
   MessageSquare,
@@ -23,6 +22,7 @@ import {
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import StudentRoleTag, { STUDENT_ROLE_TAGS } from "@/components/StudentRoleTag";
+import { peopleService, apiRequest } from "@/services/apiClient";
 
 // Candidate mock data directly from Figma frame "Student discovery"
 const initialCandidates = [
@@ -173,6 +173,7 @@ const initialCandidates = [
 ];
 
 export default function StudentPeoplePage() {
+  const [candidates, setCandidates] = useState(initialCandidates);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [minScore, setMinScore] = useState(0);
@@ -181,6 +182,34 @@ export default function StudentPeoplePage() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Fetch real users from MongoDB with fallback to initialCandidates
+  useEffect(() => {
+    let isMounted = true;
+    peopleService.list({ role: "student" }, initialCandidates).then((data) => {
+      if (isMounted && Array.isArray(data) && data.length > 0) {
+        const formatted = data.map((u, i) => ({
+          id: u._id || u.id || i + 1,
+          name: u.name,
+          tag: u.roleTag || "Regular",
+          role: u.headline || "Developer",
+          college: u.college || "College of Engineering",
+          department: u.branch || u.course || "Computer Science",
+          location: u.location || "India",
+          score: u.reputationScore || u.score || 70,
+          avatar: u.profileIcon || initialCandidates[i % initialCandidates.length]?.avatar,
+          skills: u.skills ? u.skills.map((s) => (typeof s === "string" ? s : s.name)).slice(0, 2) : ["React", "Node.js"],
+          allSkills: u.skills ? u.skills.map((s) => (typeof s === "string" ? s : s.name)) : ["React", "Node.js", "TypeScript"],
+          bio: u.bio || "Student developer on ShowMySkills.",
+          projects: u.projects || [],
+        }));
+        setCandidates(formatted);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -199,11 +228,14 @@ export default function StudentPeoplePage() {
       }
       return next;
     });
+
+    // Fire API call asynchronously; silently handled if offline
+    apiRequest(`/bookmarks/candidates/${id}`, "POST").catch(() => {});
   };
 
   // Filter candidates based on search & filters
   const filteredCandidates = useMemo(() => {
-    return initialCandidates.filter((c) => {
+    return candidates.filter((c) => {
       // Role filter
       if (selectedRole !== "all" && c.role.toLowerCase() !== selectedRole.toLowerCase()) {
         return false;
@@ -705,9 +737,8 @@ export default function StudentPeoplePage() {
                   {selectedCandidate.allSkills.map((s) => (
                     <span
                       key={s}
-                      className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 rounded-full text-xs font-medium text-gray-700 flex items-center gap-1.5"
+                      className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 rounded-full text-xs font-medium text-gray-700"
                     >
-                      <Sparkles className="w-3 h-3 text-[#4B9C93]" />
                       {s}
                     </span>
                   ))}

@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
-import { apiRequest } from "@/services/apiClient";
+import { apiRequest, applicationService, internshipService } from "@/services/apiClient";
 
 const initialCompanyInternships = [
   {
@@ -180,6 +180,24 @@ function CompanyApplicationsContent() {
   });
   const [postingLoading, setPostingLoading] = useState(false);
 
+  // Fetch applications and posted internships on mount with seamless fallback
+  useEffect(() => {
+    let isMounted = true;
+    applicationService.getCompanyApplications({}, initialApplications).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setApplications(res);
+      }
+    });
+    internshipService.list({}, initialCompanyInternships).then((res) => {
+      if (isMounted && res && Array.isArray(res) && res.length > 0) {
+        setCompanyInternships(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Automatically open Post Internship modal if ?new=true is in the query params
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -226,6 +244,8 @@ function CompanyApplicationsContent() {
     if (selectedCandidate && selectedCandidate.id === id) {
       setSelectedCandidate((prev) => ({ ...prev, status: newStatus }));
     }
+    // Update backend in background; gracefully falls back if server offline
+    applicationService.updateStatus(id, newStatus);
   };
 
   // Handle Submit New Internship

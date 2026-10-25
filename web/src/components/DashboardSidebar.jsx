@@ -15,7 +15,6 @@ import {
   FileText,
   CheckCircle,
   BarChart3,
-  Sparkles,
   X,
   GraduationCap,
   Building2,

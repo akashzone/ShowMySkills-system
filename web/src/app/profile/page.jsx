@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import ProfileHeader from "@/features/profile/ProfileHeader";
@@ -9,6 +10,7 @@ import AboutCard from "@/features/profile/AboutCard";
 import SkillsCard from "@/features/profile/SkillsCard";
 import ProjectsCard from "@/features/profile/ProjectsCard";
 import { studentProfileData } from "@/features/profile/mockData";
+import { authService } from "@/services/apiClient";
 
 /**
  * StudentProfilePage — Task STU-02 - Student Profile View.
@@ -18,7 +20,30 @@ import { studentProfileData } from "@/features/profile/mockData";
  * profile cards from studentProfileData mock.
  */
 export default function StudentProfilePage() {
-  const data = studentProfileData;
+  const [data, setData] = useState(studentProfileData);
+
+  useEffect(() => {
+    let isMounted = true;
+    authService.getCurrentUser(null).then((user) => {
+      if (isMounted && user) {
+        setData((prev) => ({
+          ...prev,
+          name: user.name || prev.name,
+          title: user.title || user.headline || prev.title,
+          college: user.college || prev.college,
+          location: user.location || prev.location,
+          aboutText: user.bio || prev.aboutText,
+          skillsList:
+            user.skills && Array.isArray(user.skills) && user.skills.length > 0
+              ? user.skills.map((s) => (typeof s === "string" ? { name: s, level: "advanced" } : s))
+              : prev.skillsList,
+        }));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F7F9F9] flex">
