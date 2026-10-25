@@ -15,7 +15,6 @@ import {
   ExternalLink,
   MessageSquare,
   GraduationCap,
-  Sparkles,
   Download,
 } from "lucide-react";
 
