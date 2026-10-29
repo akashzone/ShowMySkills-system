@@ -205,8 +205,8 @@ export default function DashboardHeader({
                     )}
                   </div>
                   <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
-                    {notifications.map((n) => (
-                      <div key={n.id} className="py-2.5">
+                    {notifications.map((n, index) => (
+                      <div key={n._id || n.id || index} className="py-2.5">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-xs text-gray-900">{n.title}</span>
                           <span className="text-[10px] text-gray-400">{n.time}</span>
@@ -301,9 +301,9 @@ export default function DashboardHeader({
                   </div>
 
                   <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
-                    {notifications.map((n) => (
+                    {notifications.map((n, index) => (
                       <div
-                        key={n.id}
+                        key={n._id || n.id || index}
                         className={`py-3 px-2 rounded-xl transition-colors ${
                           n.unread ? "bg-[#E6F7F3]/30" : "hover:bg-gray-50"
                         }`}
